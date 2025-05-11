@@ -1372,3 +1372,4 @@ if user_symptoms := st.chat_input("Describe symptoms (e.g., 'fever, persistent c
     st.rerun()
 
 st.markdown(f"""<div style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba({int(bg_color[1:3], 16)}, {int(bg_color[3:5], 16)}, {int(bg_color[5:7], 16)}, 0.9); backdrop-filter: blur(5px); padding: 0.5rem; text-align: center; border-top: 1px solid {card_border_color}; z-index: 99;"><p style="margin: 0; font-size: 0.8rem; opacity: 0.7; color: {text_color_blue} !important;">TATA md AI Medical Advisor © {datetime.now().year} - For Informational Purposes Only</p></div>""", unsafe_allow_html=True)
+
