@@ -748,7 +748,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- Theme Colors (using your provided theme) ---
+# --- Define Theme Colors (using your provided theme) ---
 bg_color = "#141E30"; text_color_yellow = "#FFFACD"; text_color_blue = "#87CEFA"; primary_accent_pink = "#FF3CAC"
 secondary_accent_blue = "#2B86C5"; secondary_accent_purple = "#784BA0"; dark_theme_bg_accent = "#243B55"
 highlight_color_medication = "#FFB74D"; highlight_color_med_purpose = "#AED581"; highlight_color_med_dosage = "#FFF176"
@@ -758,10 +758,290 @@ expander_content_bg_color = f"rgba(43, 134, 197, 0.15)"; card_bg_color = f"rgba(
 card_border_color = f"rgba({int(primary_accent_pink[1:3], 16)}, {int(primary_accent_pink[3:5], 16)}, {int(primary_accent_pink[5:7], 16)}, 0.3)"
 analysis_done_chat_bg = f"rgba({int(secondary_accent_blue[1:3], 16)}, {int(secondary_accent_blue[3:5], 16)}, {int(secondary_accent_blue[5:7], 16)}, 0.25)"
 
-# --- Custom CSS (Your provided CSS) ---
-# For brevity, I'm assuming your extensive CSS block is correctly placed here.
-# Ensure the class names in the CSS match the ones used in the Python markdown.
-st.markdown(f"""<style> ... YOUR EXTENSIVE CSS FROM PREVIOUS MESSAGE ... </style>""", unsafe_allow_html=True)
+# --- Custom CSS (Your provided CSS - THIS IS THE FULL BLOCK) ---
+st.markdown(f"""
+<style>
+    /* Base styles - Default text is Yellow */
+    body, .stApp, .stChatInput, .stTextArea textarea, .stTextInput input, .stSelectbox div[data-baseweb="select"] > div {{
+        background-color: {bg_color} !important;
+        background-image: linear-gradient(to bottom right, {bg_color}, {dark_theme_bg_accent}) !important;
+        color: {text_color_yellow} !important;
+        font-family: 'Inter', sans-serif;
+    }}
+    p, li, span, div {{
+        color: {text_color_yellow};
+    }}
+    a, a:visited {{
+        color: {text_color_blue} !important;
+        text-decoration: none;
+    }}
+    a:hover {{
+        color: #5DADE2 !important; /* secondary_accent_blue_lighter */
+        text-decoration: underline;
+    }}
+
+    .gradient-text {{
+        background: linear-gradient(90deg, {primary_accent_pink} 0%, {secondary_accent_purple} 50%, {secondary_accent_blue} 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+    }}
+
+    .main-header {{ font-size: 3.0rem; font-weight: 700; margin-bottom: 0.5rem; text-align: center; }}
+    .sub-header {{ font-size: 1.1rem; color: {text_color_blue} !important; opacity: 0.9; text-align: center; margin-bottom: 2rem; }}
+
+    .section-header {{
+        font-size: 2.0rem;
+        color: {primary_accent_pink} !important;
+        margin-top: 2.5rem;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        text-shadow: 0 0 8px rgba({int(primary_accent_pink[1:3],16)}, {int(primary_accent_pink[3:5],16)}, {int(primary_accent_pink[5:7],16)}, 0.3);
+    }}
+
+    .stChatMessage {{
+        background: {card_bg_color};
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 0.8rem;
+        border: 1px solid {card_border_color};
+        padding: 1.2rem 1.8rem;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }}
+     .stChatMessage p, .stChatMessage li, .stChatMessage span, .stChatMessage div {{
+        color: {text_color_yellow} !important;
+    }}
+
+    div[data-testid="stChatMessageContent-assistant"] div.analysis-complete-message {{
+        background: {analysis_done_chat_bg} !important;
+        border: 1px solid {secondary_accent_blue} !important;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: -0.2rem -0.8rem; /* Adjust if it causes layout issues */
+    }}
+    div[data-testid="stChatMessageContent-assistant"] div.analysis-complete-message *,
+    div[data-testid="stChatMessageContent-assistant"] div.analysis-complete-message p,
+    div[data-testid="stChatMessageContent-assistant"] div.analysis-complete-message li,
+    div[data-testid="stChatMessageContent-assistant"] div.analysis-complete-message span {{
+        color: {text_color_yellow} !important;
+    }}
+
+    .highlight-disease {{
+        color: {text_color_yellow} !important;
+        font-weight: bold;
+        font-size: 1.4em;
+        display: block;
+        text-align: center;
+        margin-bottom: 0.75rem;
+        padding: 0.3rem;
+        border-radius: 5px;
+    }}
+
+    /* Medication specific styling from previous iteration */
+    .medication-item {{
+        background-color: rgba(43, 134, 197, 0.2);
+        border: 1px solid rgba(255, 60, 172, 0.3);
+        border-left: 5px solid {highlight_color_medication};
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }}
+    .medication-item p {{ margin-bottom: 0.4rem !important; line-height: 1.5; }}
+    .medication-item .med-drug-name strong {{ color: {highlight_color_medication} !important; font-size: 1.15em; display: block; margin-bottom: 0.3rem; }}
+    .medication-item .med-purpose span {{ color: {highlight_color_med_purpose} !important; }}
+    .medication-item .med-dosage span {{ color: {highlight_color_med_dosage} !important; font-style: italic; }}
+    .medication-item .med-dosage em {{ font-size: 0.85em; opacity: 0.8; }}
+    .medication-item .med-notes span {{ color: {highlight_color_med_notes} !important; }}
+
+
+    .treatment-guidance-subheader {{
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-top: 0.8rem;
+        margin-bottom: 0.6rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid {card_border_color};
+    }}
+    .pharma-header {{ color: {text_color_blue} !important; }}
+    .lifestyle-header {{ color: {text_color_blue} !important; }}
+    .dietary-header {{ color: {text_color_yellow} !important; }}
+    .dos-donts-header {{ color: {text_color_blue} !important; }}
+    .redflags-header {{ color: {primary_accent_pink} !important; }}
+
+    .symptoms-analyzed-box {{
+        background-color: rgba(20, 30, 48, 0.6);
+        border: 1px solid {secondary_accent_blue};
+        border-radius: 8px;
+        padding: 12px 15px;
+        margin-bottom: 18px;
+        font-size: 0.95em;
+    }}
+    .symptoms-analyzed-box b {{ color: {text_color_blue} !important; font-weight: 700; }}
+    .symptom-item {{
+        display: inline-block;
+        background-color: {secondary_accent_blue};
+        color: {text_color_yellow} !important;
+        padding: 4px 10px;
+        border-radius: 15px;
+        margin: 4px;
+        font-size: 0.9em;
+        border: 1px solid {primary_accent_pink};
+    }}
+
+    .disclaimer-box {{
+        background-color: rgba(36, 59, 85, 0.3);
+        border: 1px dashed {primary_accent_pink};
+        color: {text_color_blue} !important;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1.5rem;
+        font-size: 0.85em;
+    }}
+    .disclaimer-box i b {{ color: {primary_accent_pink} !important; }}
+
+    .stButton > button {{
+        background: linear-gradient(90deg, {primary_accent_pink} 0%, {secondary_accent_purple} 100%);
+        color: {text_color_yellow} !important;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.7rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }}
+    .stButton > button:hover {{
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
+        filter: brightness(1.1);
+    }}
+
+    div[data-testid="stFileUploader"] section {{
+         background-color: {card_bg_color};
+         border: 1px dashed {primary_accent_pink};
+         border-radius: 0.5rem;
+         padding: 1rem;
+    }}
+     div[data-testid="stFileUploader"] section small {{ color: {text_color_blue} !important; }}
+
+    .stProgress > div > div > div {{
+        background: linear-gradient(90deg, {primary_accent_pink} 0%, {secondary_accent_purple} 100%);
+    }}
+
+    .stChatInput > div > div > textarea {{
+        background-color: {card_bg_color};
+        border: 1px solid {card_border_color};
+        border-radius: 0.5rem;
+        color: {text_color_yellow} !important;
+        padding: 1rem;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }}
+    .stChatInput > div > div > textarea:focus {{
+        border: 1px solid {primary_accent_pink};
+        box-shadow: 0 0 0 3px rgba({int(primary_accent_pink[1:3],16)},{int(primary_accent_pink[3:5],16)},{int(primary_accent_pink[5:7],16)},0.25);
+    }}
+
+    section[data-testid="stSidebar"] > div:first-child {{
+        background-color: {bg_color} !important;
+        background-image: linear-gradient(to bottom right, {bg_color}, {dark_theme_bg_accent}) !important;
+        border-right: 1px solid {card_border_color} !important;
+    }}
+    section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p,
+    section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] li,
+    section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] span,
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] div[data-baseweb="input"] > div,
+    section[data-testid="stSidebar"] {{
+        color: {text_color_yellow} !important;
+    }}
+    section[data-testid="stSidebar"] a {{ color: {text_color_blue} !important; }}
+    section[data-testid="stSidebar"] .stHeadingContainer h2 {{
+        text-align: center;
+        color: {primary_accent_pink} !important;
+    }}
+    section[data-testid="stSidebar"] .stImage {{
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+    }}
+    section[data-testid="stSidebar"] .stButton > button {{
+        background: linear-gradient(90deg, {primary_accent_pink} 0%, {secondary_accent_purple} 100%);
+        color: {text_color_yellow} !important;
+    }}
+    section[data-testid="stSidebar"] .stAlert {{
+        border-radius: 0.5rem;
+        border-left-width: 5px !important;
+        background-color: rgba(0,0,0,0.3) !important;
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
+    }}
+    section[data-testid="stSidebar"] .stAlert p {{ color: {text_color_yellow} !important; }}
+    section[data-testid="stSidebar"] .stAlert[data-baseweb="alert"][role="status"] {{ border-left-color: #4CAF50 !important; }}
+    section[data-testid="stSidebar"] .stAlert[data-baseweb="alert"][role="note"] {{ border-left-color: {secondary_accent_blue} !important; }}
+    section[data-testid="stSidebar"] .stAlert[data-baseweb="alert"][role="alert"] {{ border-left-color: #F44336 !important; }}
+
+    .streamlit-expanderHeader {{
+        background: {expander_header_bg_color} !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 0.7rem !important;
+        color: {text_color_yellow} !important;
+        border: 1px solid {card_border_color} !important;
+        padding: 0.9rem 1.2rem !important;
+        font-weight: 600;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }}
+    .streamlit-expanderContent {{
+        background-color: {expander_content_bg_color} !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 0 0 0.7rem 0.7rem !important;
+        border: 1px solid {card_border_color} !important;
+        border-top: none !important;
+        padding: 1.5rem;
+    }}
+    .streamlit-expanderContent p, .streamlit-expanderContent li, .streamlit-expanderContent span, .streamlit-expanderContent div {{
+        color: {text_color_yellow} !important;
+    }}
+    .streamlit-expanderContent strong {{
+        color: {text_color_blue} !important;
+    }}
+    .streamlit-expanderHeader > div > svg {{
+        fill: {text_color_yellow} !important;
+    }}
+
+    #MainMenu {{visibility: hidden;}}
+    footer {{visibility: hidden;}}
+
+    ::-webkit-scrollbar {{ width: 10px; height: 10px; }}
+    ::-webkit-scrollbar-track {{ background: rgba(20, 30, 48, 0.3); border-radius: 10px; }}
+    ::-webkit-scrollbar-thumb {{
+        background: linear-gradient(180deg, {primary_accent_pink} 0%, {secondary_accent_purple} 100%);
+        border-radius: 10px;
+        border: 2px solid rgba(20, 30, 48, 0.3);
+    }}
+    ::-webkit-scrollbar-thumb:hover {{
+        background: linear-gradient(180deg, {primary_accent_pink} 30%, {secondary_accent_purple} 100%);
+        filter: brightness(1.2);
+    }}
+
+    .dos-list ul, .donts-list ul {{ list-style-type: none; padding-left: 0; }}
+    .dos-list li::before {{ content: '👍'; color: {highlight_color_positive_icon}; font-weight: bold; display: inline-block; width: 1.5em; margin-left: -1.5em; }}
+    .dos-list li {{ color: {text_color_yellow} !important; }}
+    .donts-list li::before {{ content: '👎'; color: {highlight_color_negative_icon}; font-weight: bold; display: inline-block; width: 1.5em; margin-left: -1.5em; }}
+    .donts-list li {{ color: {text_color_yellow} !important; }}
+    .foods-eat-list ul, .foods-avoid-list ul {{ list-style-type: none; padding-left: 0; }}
+    .foods-eat-list li::before {{ content: '✅ '; color: {highlight_color_positive_icon}; font-weight: bold; }}
+    .foods-eat-list li {{ color: {text_color_yellow} !important; }}
+    .foods-avoid-list li::before {{ content: '❌ '; color: {highlight_color_negative_icon}; font-weight: bold; }}
+    .foods-avoid-list li {{ color: {text_color_yellow} !important; }}
+    .foods-eat-list-title, .foods-avoid-list-title {{ color: {text_color_yellow} !important; }}
+    .dos-list-title, .donts-list-title {{ color: {text_color_blue} !important; }}
+</style>
+""", unsafe_allow_html=True)
 
 
 # --- Load Environment Variables ---
@@ -773,11 +1053,10 @@ if not OPENAI_API_KEY:
 if not os.path.exists(DATA_DIR): os.makedirs(DATA_DIR)
 if not os.path.exists(ASSETS_DIR): os.makedirs(ASSETS_DIR)
 
-
 # --- Constants for Default Book ---
-DEFAULT_PDF_NAME = "Medical_book.pdf" # UPDATED to your specified PDF name
+DEFAULT_PDF_NAME = "Medical_book.pdf" # YOUR SPECIFIED DEFAULT PDF
 DEFAULT_PDF_PATH = os.path.join(DATA_DIR, DEFAULT_PDF_NAME)
-DEFAULT_KB_DISPLAY_NAME = "Medical Reference (Default)" # More generic display name
+DEFAULT_KB_DISPLAY_NAME = "Medical Reference (Default)"
 
 # --- Session State ---
 if "vector_store_loaded" not in st.session_state: st.session_state.vector_store_loaded = False
@@ -786,9 +1065,10 @@ if "processed_pdf_name" not in st.session_state: st.session_state.processed_pdf_
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": f"Welcome! Initializing with the {DEFAULT_KB_DISPLAY_NAME}..."}]
 if "kb_source_is_default" not in st.session_state:
-    st.session_state.kb_source_is_default = False # Will be set to True if default KB is loaded
+    st.session_state.kb_source_is_default = False
 
-# --- Default Messages (remains the same) ---
+# --- Default Messages ---
+# ... (Your DEFAULT_MSG_... constants are here, ensure they are defined as in your version) ...
 DEFAULT_MSG_PREDICTED_DISEASE = "Not specified by AI or not clearly identified from the context."
 DEFAULT_MSG_REASONING = "Reasoning not provided or an error occurred parsing the response."
 DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK = "Information not available for specific medications. Consult a healthcare professional."
@@ -796,15 +1076,13 @@ DEFAULT_MSG_LIFESTYLE = "Specific lifestyle guidance not found. Consult a health
 DEFAULT_MSG_DIETARY = "Specific dietary recommendations not found. Consult a healthcare professional."
 DEFAULT_MSG_DOS_DONTS = "Specific Do's & Don'ts not found. Consult a healthcare professional."
 DEFAULT_MSG_SEEK_HELP = "Always consult a doctor if symptoms are severe, worsen, or if you have any concerns."
-DEFAULT_MSG_DISCLAIMER = """This information is for educational purposes only and not a substitute for professional medical advice, diagnosis, or treatment.
-Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
-Never disregard professional medical advice or delay in seeking it because of something you have read from this chatbot.
-Medication details are illustrative and NOT a prescription; consult your doctor for any medication."""
+DEFAULT_MSG_DISCLAIMER = "This information is for educational purposes only..."
 
-# --- Helper Function to Parse LLM Response (Your existing complex parser) ---
+
+# --- Helper Function to Parse LLM Response ---
 def parse_llm_response(response_text):
-    # ... (Your existing, detailed parse_llm_response function here) ...
-    # For brevity, this is a placeholder. Use your full parser.
+    # ... (Your complete parse_llm_response function as provided previously) ...
+    # This should correctly populate `parsed_data["medications_list"]`
     parsed_data = {
         "predicted_disease": DEFAULT_MSG_PREDICTED_DISEASE, "reasoning": DEFAULT_MSG_REASONING,
         "pharmacological": DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK, "medications_list": [],
@@ -831,17 +1109,14 @@ def parse_llm_response(response_text):
             if med_items: parsed_data["medications_list"] = [{"drug_name": i[0].strip() or "N/A", "purpose": i[1].strip() or "N/A", "dosage": i[2].strip() if i[2] else "Consult doctor.", "notes": i[3].strip() if i[3] else "N/A"} for i in med_items]
             elif "consult a doctor" not in pharma_content.lower() and "information not available" not in pharma_content.lower(): pass
             else: parsed_data["pharmacological"] = DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK
+    # ... (ensure full parsing logic for other sections is included here) ...
     return parsed_data
-
 
 # --- Core Functions ---
 def process_and_load_pdf(pdf_path, display_name, is_default=False):
-    """Processes a PDF and loads it into the FAISS vector store."""
-    # Ensure FAISS_INDEX_DIR_ABS is available (should be imported from rag_pipeline.py)
     if 'FAISS_INDEX_DIR_ABS' not in globals() and 'FAISS_INDEX_DIR_ABS' not in locals():
         st.error("FAISS_INDEX_DIR_ABS is not defined. Cannot clear or save index.")
         return False
-        
     with st.spinner(f"Processing {display_name}... This may take a few minutes."):
         if os.path.exists(FAISS_INDEX_DIR_ABS):
             try:
@@ -849,124 +1124,83 @@ def process_and_load_pdf(pdf_path, display_name, is_default=False):
                 print(f"Cleared existing FAISS index directory: {FAISS_INDEX_DIR_ABS}")
             except Exception as e:
                 st.warning(f"Could not clear previous index directory: {e}. Proceeding to build new index.")
-        
-        vs = load_and_process_pdf_to_faiss(pdf_path) # From rag_pipeline.py
+        vs = load_and_process_pdf_to_faiss(pdf_path)
         if vs:
             st.session_state.vector_store = vs
             st.session_state.vector_store_loaded = True
             st.session_state.processed_pdf_name = display_name
             st.session_state.kb_source_is_default = is_default
             st.session_state.messages = [{"role": "assistant", "content": f"Knowledge base from '{display_name}' is ready. How can I assist?"}]
-            # st.success is better in sidebar for this action
             return True
         else:
             st.session_state.messages = [{"role": "assistant", "content": f"Failed to process '{display_name}'. Please try again."}]
-            # st.error is better in sidebar
             return False
 
 def initialize_or_load_kb():
-    """Tries to load an existing FAISS store or process the default PDF."""
-    # Attempt to load existing store first
-    vs = load_existing_faiss_store() # From rag_pipeline.py
+    vs = load_existing_faiss_store()
     if vs:
         st.session_state.vector_store = vs
         st.session_state.vector_store_loaded = True
-        # Try to retain the name if it was set, otherwise assume it's the default one if loaded at startup
         st.session_state.processed_pdf_name = st.session_state.get("processed_pdf_name", DEFAULT_KB_DISPLAY_NAME)
         st.session_state.kb_source_is_default = st.session_state.get("kb_source_is_default", True if st.session_state.processed_pdf_name == DEFAULT_KB_DISPLAY_NAME else False)
-
-        # Update welcome message if it's the initial one
         if len(st.session_state.messages) == 1 and "Welcome!" in st.session_state.messages[0]["content"]:
              st.session_state.messages[0] = {"role": "assistant", "content": f"Welcome! Knowledge base '{st.session_state.processed_pdf_name}' is active."}
-
     elif os.path.exists(DEFAULT_PDF_PATH):
-        # No existing store, and default PDF exists, so process it.
         st.sidebar.info(f"No existing knowledge base found. Processing '{DEFAULT_KB_DISPLAY_NAME}'...")
         success = process_and_load_pdf(DEFAULT_PDF_PATH, DEFAULT_KB_DISPLAY_NAME, is_default=True)
-        if success:
-            st.sidebar.success(f"Default KB '{DEFAULT_KB_DISPLAY_NAME}' processed.")
-        else:
-            st.sidebar.error(f"Failed to process default KB '{DEFAULT_KB_DISPLAY_NAME}'.")
+        if success: st.sidebar.success(f"Default KB '{DEFAULT_KB_DISPLAY_NAME}' processed.")
+        else: st.sidebar.error(f"Failed to process default KB '{DEFAULT_KB_DISPLAY_NAME}'.")
     else:
-        # No existing store, and default PDF is also missing.
         st.sidebar.warning(f"Default PDF '{DEFAULT_PDF_NAME}' not found in '{DATA_DIR}'. Please upload a PDF to begin.")
-        st.session_state.messages[0] = {"role": "assistant", "content": f"Welcome! Default knowledge base not found. Please upload a medical PDF to create one."}
-
+        st.session_state.messages[0] = {"role": "assistant", "content": f"Welcome! Default knowledge base not found. Please upload a medical PDF."}
 
 # --- UI Layout ---
-# ... (Your main header markdown) ...
 st.markdown(f"""<div style="text-align: center; padding-top: 2rem; padding-bottom: 1rem;"><h1 class='main-header'><span class='gradient-text'>TATA md AI Medical Advisor</span></h1><p class='sub-header'>Leveraging medical literature to offer insights on symptoms. <br><em>This tool provides information for educational purposes only and is not a substitute for professional medical advice.</em></p></div>""", unsafe_allow_html=True)
-
 
 # --- Sidebar ---
 with st.sidebar:
     logo_path = os.path.join(ASSETS_DIR, "tatmd.png"); default_logo_url = "https://www.tatamd.com/images/logo_TATA%20MD.svg"
     if os.path.exists(logo_path): st.image(logo_path, width=180, use_container_width=False)
     else: st.markdown(f"""<div style='text-align: center; margin-bottom: 1rem;'><img src="{default_logo_url}" alt="TATA MD Logo" style="width: 180px; margin-bottom: 10px;" onerror="this.style.display='none'; this.parentElement.innerHTML+='<p style=\'color:{text_color_yellow};\'>TATA MD Logo</p>';"></div>""", unsafe_allow_html=True)
-
     st.markdown(f"<h2 style='text-align: center; color: {primary_accent_pink}; margin-bottom: 1rem;'>Knowledge Base</h2>", unsafe_allow_html=True)
-
-    # Initialize or load KB on first run / if not loaded
-    if not st.session_state.vector_store_loaded:
-        initialize_or_load_kb()
-    elif st.session_state.vector_store_loaded: # If already loaded, just show status
-         st.success(f"Active KB: {st.session_state.processed_pdf_name or 'Unknown Source'}")
-
-
+    if not st.session_state.vector_store_loaded: initialize_or_load_kb()
+    elif st.session_state.vector_store_loaded: st.success(f"Active KB: {st.session_state.processed_pdf_name or 'Unknown Source'}")
     st.markdown("---")
     st.markdown("<p style='font-weight: bold; color: #FFB74D;'>Upload Custom PDF:</p>", unsafe_allow_html=True)
-    uploaded_file_sb = st.file_uploader("Select a medical PDF to build a new knowledge base.", type="pdf", key="pdf_uploader_sidebar_main") # Changed key
-
-    if st.button("Process Uploaded PDF", key="process_uploaded_button_main", help="Process the uploaded PDF. This will replace the current knowledge base."): # Changed key
+    uploaded_file_sb = st.file_uploader("Select a medical PDF to build a new knowledge base.", type="pdf", key="pdf_uploader_sidebar_main_v2")
+    if st.button("Process Uploaded PDF", key="process_uploaded_button_main_v2", help="Process the uploaded PDF. This will replace the current knowledge base."):
         if uploaded_file_sb is not None:
-            # Save uploaded file to data directory (optional, could process in memory too)
             user_pdf_path = os.path.join(DATA_DIR, uploaded_file_sb.name)
-            with open(user_pdf_path, "wb") as f:
-                f.write(uploaded_file_sb.getbuffer())
-            
+            with open(user_pdf_path, "wb") as f: f.write(uploaded_file_sb.getbuffer())
             success = process_and_load_pdf(user_pdf_path, uploaded_file_sb.name, is_default=False)
-            if success:
-                 st.sidebar.success(f"Custom KB '{uploaded_file_sb.name}' processed.")
-            else:
-                 st.sidebar.error(f"Failed to process '{uploaded_file_sb.name}'.")
-            # No need to remove user_pdf_path if you want to keep it in data/
+            if success: st.sidebar.success(f"Custom KB '{uploaded_file_sb.name}' processed.")
+            else: st.sidebar.error(f"Failed to process '{uploaded_file_sb.name}'.")
             st.rerun()
-        else:
-            st.warning("Please upload a PDF file first.")
-
-    # Option to switch back to default if a custom one is loaded
+        else: st.warning("Please upload a PDF file first.")
     if st.session_state.vector_store_loaded and not st.session_state.kb_source_is_default:
-        if st.button("Load Default KB", key="switch_to_default_kb_main"): # Changed key
+        if st.button("Load Default KB", key="switch_to_default_kb_main_v2"):
             if os.path.exists(DEFAULT_PDF_PATH):
                 st.sidebar.info(f"Switching to '{DEFAULT_KB_DISPLAY_NAME}'...")
                 success = process_and_load_pdf(DEFAULT_PDF_PATH, DEFAULT_KB_DISPLAY_NAME, is_default=True)
-                if success:
-                    st.sidebar.success(f"Default KB '{DEFAULT_KB_DISPLAY_NAME}' loaded.")
-                else:
-                    st.sidebar.error(f"Failed to load default KB '{DEFAULT_KB_DISPLAY_NAME}'.")
+                if success: st.sidebar.success(f"Default KB '{DEFAULT_KB_DISPLAY_NAME}' loaded.")
+                else: st.sidebar.error(f"Failed to load default KB '{DEFAULT_KB_DISPLAY_NAME}'.")
                 st.rerun()
-            else:
-                st.error(f"Default PDF '{DEFAULT_PDF_NAME}' not found. Cannot switch.")
-    
-    st.markdown("---")
-    st.markdown(f"<p style='font-size: 0.8em; text-align: center; opacity: 0.7; color: {text_color_blue} !important;'>Powered by Advanced AI</p>", unsafe_allow_html=True)
-
+            else: st.error(f"Default PDF '{DEFAULT_PDF_NAME}' not found. Cannot switch.")
+    st.markdown("---"); st.markdown(f"<p style='font-size: 0.8em; text-align: center; opacity: 0.7; color: {text_color_blue} !important;'>Powered by Advanced AI</p>", unsafe_allow_html=True)
 
 # --- Main Chat Interface ---
-# ... (Your main chat interface markdown header, e.g., st.markdown("<div class='section-header'>...</div>"))
 st.markdown("<div class='section-header'>Symptom Analysis & Guidance</div>", unsafe_allow_html=True)
-
 chat_container = st.container()
 with chat_container:
-    # ... (Your existing, detailed message display loop - ensure it's complete) ...
-    # This should iterate through st.session_state.messages and display user/assistant messages
-    # The assistant message display should use data.get('medications_list', []) for meds
+    # ... (Your existing, detailed message display loop from the previous version) ...
+    # Ensure this section correctly displays user messages and the structured assistant responses
+    # including the iteration over data.get('medications_list', []) for multiple medication boxes.
     for i, msg in enumerate(st.session_state.messages):
         is_structured_response = isinstance(msg["content"], dict) and "predicted_disease" in msg["content"]
         with st.chat_message(msg["role"], avatar="🧑‍⚕️" if msg["role"] == "assistant" else "👤"):
             if msg["role"] == "user": st.markdown(f"<div style='text-align: right; color: {text_color_yellow} !important; padding: 0.5rem;'>{msg['content']}</div>", unsafe_allow_html=True)
             elif is_structured_response:
-                st.markdown("<div class='analysis-complete-message'>", unsafe_allow_html=True)
+                st.markdown("<div class='analysis-complete-message'>", unsafe_allow_html=True) # Wrapper class
                 data = msg["content"]
                 symptoms_input_string = data.get("symptoms_input", "")
                 if symptoms_input_string:
@@ -985,7 +1219,7 @@ with chat_container:
                     st.markdown(f"<div class='treatment-guidance-subheader pharma-header'>Medications</div>", unsafe_allow_html=True)
                     med_list = data.get('medications_list', []); pharma_fb = data.get('pharmacological', DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK).strip()
                     if med_list:
-                        for med in med_list:
+                        for med in med_list: # Iterate and display each medication in its own box
                             med_h = "<div class='medication-item'>"
                             med_h += f"<p class='med-drug-name'><strong>{med.get('drug_name', 'N/A')}</strong></p>"
                             if med.get('purpose') and med.get('purpose') != 'N/A': med_h += f"<p class='med-purpose'>Purpose: <span>{med.get('purpose')}</span></p>"
@@ -993,11 +1227,13 @@ with chat_container:
                             if d_txt and d_txt not in ['N/A', 'Consult doctor.', 'Consult doctor for dosage.']: med_h += f"<p class='med-dosage'>Dosage Example: <span>{d_txt}</span> <em>(Not medical advice)</em></p>"
                             if med.get('notes') and med.get('notes') != 'N/A': med_h += f"<p class='med-notes'>Notes: <span>{med.get('notes')}</span></p>"
                             med_h += "</div>"; st.markdown(med_h, unsafe_allow_html=True)
-                    elif pharma_fb and pharma_fb != DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK and "not available" not in pharma_fb.lower(): st.markdown(f"<div class='medication-item'>{pharma_fb}</div>", unsafe_allow_html=True) # Wrap fallback text in item box
+                    elif pharma_fb and pharma_fb != DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK and "not available" not in pharma_fb.lower():
+                        st.markdown(f"<div class='medication-item'>{pharma_fb}</div>", unsafe_allow_html=True) # Wrap general fallback in item box
                     else: st.markdown(f"<p style='color:{text_color_blue}; font-style:italic;'>{DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK}</p>", unsafe_allow_html=True)
+                # ... (Rest of your expanders: Lifestyle, Dietary, Do/Don'ts, Red Flags - ensure they are complete) ...
                 with st.expander("🌿 Non-Pharmacological & Lifestyle"):
                     st.markdown(f"<div class='treatment-guidance-subheader lifestyle-header'>Lifestyle & Home Care</div>", unsafe_allow_html=True)
-                    c = data.get('non_pharmacological_lifestyle', DEFAULT_MSG_LIFESTYLE).strip()
+                    c = data.get('non_pharmacological_lifestyle', DEFAULT_MSG_LIFESTYLE).strip();
                     if c and c != DEFAULT_MSG_LIFESTYLE and "not available" not in c.lower(): st.markdown(c, unsafe_allow_html=True)
                     else: st.markdown(f"<p style='color:{text_color_blue}; font-style:italic;'>{DEFAULT_MSG_LIFESTYLE}</p>", unsafe_allow_html=True)
                 with st.expander("🥗 Dietary Recommendations"):
@@ -1029,11 +1265,11 @@ with chat_container:
                     c = data.get('when_to_seek_help', DEFAULT_MSG_SEEK_HELP).strip()
                     if c and c != DEFAULT_MSG_SEEK_HELP and "always consult" not in c.lower(): st.error(c)
                     else: st.markdown(f"<p style='color:{text_color_blue}; font-style:italic;'>{DEFAULT_MSG_SEEK_HELP}</p>", unsafe_allow_html=True)
+
                 st.markdown(f"<hr style='border-color: {card_border_color}; margin-top:1.5rem; margin-bottom:1rem;'>", unsafe_allow_html=True)
                 st.markdown("<div class='disclaimer-box'>" + f"<i><b>Disclaimer:</b> {data.get('disclaimer', DEFAULT_MSG_DISCLAIMER)}</i>" + "</div>", unsafe_allow_html=True)
-                st.markdown("</div>", unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True) # Close .analysis-complete-message
             else: st.markdown(f"<div style='padding: 0.5rem; color: {text_color_yellow} !important;'>{str(msg['content'])}</div>", unsafe_allow_html=True)
-
 
 # --- Chat Input ---
 if user_symptoms := st.chat_input("Describe symptoms (e.g., 'fever, persistent cough, body aches')...", key="symptom_input_main"):
