@@ -47,8 +47,7 @@ medical_rag_chatbot/chroma_db/
 local_settings.py
 db.sqlite3
 db.sqlite3-journaldata/Medical_book.pdf
-data/Medical_book.pdf
-data/Medical_book.pdf
+
 faiss_index_store/
 faiss_medical_book.pkl # If you ever used this name
 # ...
