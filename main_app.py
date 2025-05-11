@@ -712,7 +712,6 @@ import re
 from datetime import datetime
 import json
 import traceback # Ensure traceback is imported for detailed error logging
-import shutil # For clearing FAISS index directory
 
 # --- Define SCRIPT_DIR, ASSETS_DIR, DATA_DIR first for robustness ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -725,17 +724,19 @@ if SCRIPT_DIR not in sys.path:
     sys.path.append(SCRIPT_DIR)
 
 try:
+    # UPDATED TO FAISS FUNCTION NAMES
     from rag_pipeline import (
-        load_and_process_pdf_to_faiss,
-        query_rag_pipeline_faiss,
-        load_existing_faiss_store,
-        OPENAI_API_KEY,
-        FAISS_INDEX_DIR_ABS # Make sure this is exported from rag_pipeline.py
+        load_and_process_pdf_to_faiss, # Assumes this is in your FAISS rag_pipeline.py
+        query_rag_pipeline_faiss,      # Assumes this is in your FAISS rag_pipeline.py
+        load_existing_faiss_store,     # Assumes this is in your FAISS rag_pipeline.py
+        OPENAI_API_KEY
     )
 except ImportError as e:
     st.error(
-        f"Critical Error: Could not import FAISS-specific functions or constants from 'rag_pipeline.py'. "
-        f"Ensure 'rag_pipeline.py' defines FAISS_INDEX_DIR_ABS and FAISS functions. Error: {e}"
+        f"Critical Error: Could not import FAISS-specific functions from 'rag_pipeline.py'. "
+        f"Please ensure 'rag_pipeline.py' has been updated for FAISS (e.g., uses functions like 'load_and_process_pdf_to_faiss') "
+        f"and 'utils.py' are in the same directory as 'main_app.py' ({SCRIPT_DIR}) "
+        f"and all dependencies are installed. Specific error: {e}"
     )
     st.stop()
 
@@ -749,16 +750,27 @@ st.set_page_config(
 )
 
 # --- Define Theme Colors (using your provided theme) ---
-bg_color = "#141E30"; text_color_yellow = "#FFFACD"; text_color_blue = "#87CEFA"; primary_accent_pink = "#FF3CAC"
-secondary_accent_blue = "#2B86C5"; secondary_accent_purple = "#784BA0"; dark_theme_bg_accent = "#243B55"
-highlight_color_medication = "#FFB74D"; highlight_color_med_purpose = "#AED581"; highlight_color_med_dosage = "#FFF176"
-highlight_color_med_notes = "#BCAAA4"; highlight_color_positive_icon = "#66BB6A"; highlight_color_negative_icon = "#EF5350"
+bg_color = "#141E30"
+text_color_yellow = "#FFFACD"
+text_color_blue = "#87CEFA"
+primary_accent_pink = "#FF3CAC"
+secondary_accent_blue = "#2B86C5"
+secondary_accent_purple = "#784BA0"
+dark_theme_bg_accent = "#243B55"
+highlight_color_medication = "#FFB74D" # Orange for medication names
+highlight_color_med_purpose = "#AED581" # Light Green for purpose
+highlight_color_med_dosage = "#FFF176" # Light Yellow for dosage (use with caution)
+highlight_color_med_notes = "#BCAAA4" # Light Brown/Grey for notes
+highlight_color_positive_icon = "#66BB6A"
+highlight_color_negative_icon = "#EF5350"
 expander_header_bg_color = f"linear-gradient(135deg, rgba(255, 60, 172, 0.4) 0%, rgba(43, 134, 197, 0.5) 100%)"
-expander_content_bg_color = f"rgba(43, 134, 197, 0.15)"; card_bg_color = f"rgba({int(secondary_accent_blue[1:3], 16)}, {int(secondary_accent_blue[3:5], 16)}, {int(secondary_accent_blue[5:7], 16)}, 0.4)"
+expander_content_bg_color = f"rgba(43, 134, 197, 0.15)"
+card_bg_color = f"rgba({int(secondary_accent_blue[1:3], 16)}, {int(secondary_accent_blue[3:5], 16)}, {int(secondary_accent_blue[5:7], 16)}, 0.4)"
 card_border_color = f"rgba({int(primary_accent_pink[1:3], 16)}, {int(primary_accent_pink[3:5], 16)}, {int(primary_accent_pink[5:7], 16)}, 0.3)"
 analysis_done_chat_bg = f"rgba({int(secondary_accent_blue[1:3], 16)}, {int(secondary_accent_blue[3:5], 16)}, {int(secondary_accent_blue[5:7], 16)}, 0.25)"
 
-# --- Custom CSS (Your provided CSS - THIS IS THE FULL BLOCK) ---
+
+# --- Custom CSS (Your provided CSS) ---
 st.markdown(f"""
 <style>
     /* Base styles - Default text is Yellow */
@@ -842,13 +854,13 @@ st.markdown(f"""
 
     /* Medication specific styling from previous iteration */
     .medication-item {{
-        background-color: rgba(43, 134, 197, 0.2);
-        border: 1px solid rgba(255, 60, 172, 0.3);
-        border-left: 5px solid {highlight_color_medication};
-        padding: 12px 15px;
-        margin-bottom: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        background-color: rgba(43, 134, 197, 0.2); 
+        border: 1px solid rgba(255, 60, 172, 0.3); 
+        border-left: 5px solid {highlight_color_medication}; 
+        padding: 12px 15px; 
+        margin-bottom: 15px; 
+        border-radius: 8px; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
     }}
     .medication-item p {{ margin-bottom: 0.4rem !important; line-height: 1.5; }}
     .medication-item .med-drug-name strong {{ color: {highlight_color_medication} !important; font-size: 1.15em; display: block; margin-bottom: 0.3rem; }}
@@ -958,7 +970,7 @@ st.markdown(f"""
         color: {text_color_yellow} !important;
     }}
     section[data-testid="stSidebar"] a {{ color: {text_color_blue} !important; }}
-    section[data-testid="stSidebar"] .stHeadingContainer h2 {{
+    section[data-testid="stSidebar"] .stHeadingContainer h2 {{ 
         text-align: center;
         color: {primary_accent_pink} !important;
     }}
@@ -979,9 +991,10 @@ st.markdown(f"""
         margin-right: 0.5rem;
     }}
     section[data-testid="stSidebar"] .stAlert p {{ color: {text_color_yellow} !important; }}
-    section[data-testid="stSidebar"] .stAlert[data-baseweb="alert"][role="status"] {{ border-left-color: #4CAF50 !important; }}
-    section[data-testid="stSidebar"] .stAlert[data-baseweb="alert"][role="note"] {{ border-left-color: {secondary_accent_blue} !important; }}
-    section[data-testid="stSidebar"] .stAlert[data-baseweb="alert"][role="alert"] {{ border-left-color: #F44336 !important; }}
+    section[data-testid="stSidebar"] .stAlert[data-baseweb="alert"][role="status"] {{ border-left-color: #4CAF50 !important; }} /* Success */
+    section[data-testid="stSidebar"] .stAlert[data-baseweb="alert"][role="note"] {{ border-left-color: {secondary_accent_blue} !important; }} /* Info */
+    section[data-testid="stSidebar"] .stAlert[data-baseweb="alert"][role="alert"] {{ border-left-color: #F44336 !important; }} /* Error / Warning */
+
 
     .streamlit-expanderHeader {{
         background: {expander_header_bg_color} !important;
@@ -1045,162 +1058,227 @@ st.markdown(f"""
 
 
 # --- Load Environment Variables ---
-load_dotenv()
-if not OPENAI_API_KEY:
+load_dotenv() 
+if not OPENAI_API_KEY: 
     st.error("OpenAI API key not found. Please set it in your .env file or environment variables.")
     st.stop()
 
 if not os.path.exists(DATA_DIR): os.makedirs(DATA_DIR)
 if not os.path.exists(ASSETS_DIR): os.makedirs(ASSETS_DIR)
 
-# --- Constants for Default Book ---
-DEFAULT_PDF_NAME = "Medical_book.pdf" # YOUR SPECIFIED DEFAULT PDF
-DEFAULT_PDF_PATH = os.path.join(DATA_DIR, DEFAULT_PDF_NAME)
-DEFAULT_KB_DISPLAY_NAME = "Medical Reference (Default)"
-
 # --- Session State ---
 if "vector_store_loaded" not in st.session_state: st.session_state.vector_store_loaded = False
 if "vector_store" not in st.session_state: st.session_state.vector_store = None
 if "processed_pdf_name" not in st.session_state: st.session_state.processed_pdf_name = None
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": f"Welcome! Initializing with the {DEFAULT_KB_DISPLAY_NAME}..."}]
-if "kb_source_is_default" not in st.session_state:
-    st.session_state.kb_source_is_default = False
+if "kb_init_attempted_this_session" not in st.session_state: st.session_state.kb_init_attempted_this_session = False
 
-# --- Default Messages ---
-# ... (Your DEFAULT_MSG_... constants are here, ensure they are defined as in your version) ...
+if "messages" not in st.session_state:
+    # This message will be updated by initialize_vector_store or subsequent actions
+    st.session_state["messages"] = [{"role": "assistant", "content": "Initializing Medical Advisor..."}]
+
+
+# --- Default "Not Found" Messages for Parser and Display Logic ---
 DEFAULT_MSG_PREDICTED_DISEASE = "Not specified by AI or not clearly identified from the context."
 DEFAULT_MSG_REASONING = "Reasoning not provided or an error occurred parsing the response."
-DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK = "Information not available for specific medications. Consult a healthcare professional."
-DEFAULT_MSG_LIFESTYLE = "Specific lifestyle guidance not found. Consult a healthcare professional."
-DEFAULT_MSG_DIETARY = "Specific dietary recommendations not found. Consult a healthcare professional."
-DEFAULT_MSG_DOS_DONTS = "Specific Do's & Don'ts not found. Consult a healthcare professional."
+DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK = "Information not available in provided context for specific medications. Please consult a healthcare professional for medication options."
+DEFAULT_MSG_LIFESTYLE = "Specific lifestyle and home care guidance not found in the provided documents for the current query. Please consult a healthcare professional for personalized advice."
+DEFAULT_MSG_DIETARY = "Specific dietary recommendations not found in the provided documents for the current query. Please consult a healthcare professional for personalized advice."
+DEFAULT_MSG_DOS_DONTS = "Specific Do's & Don'ts not found in the provided documents for the current query. Please consult a healthcare professional for personalized advice."
 DEFAULT_MSG_SEEK_HELP = "Always consult a doctor if symptoms are severe, worsen, or if you have any concerns."
-DEFAULT_MSG_DISCLAIMER = "This information is for educational purposes only..."
+DEFAULT_MSG_DISCLAIMER = """This information is for educational purposes only and not a substitute for professional medical advice, diagnosis, or treatment.
+Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
+Never disregard professional medical advice or delay in seeking it because of something you have read from this chatbot.
+Medication details are illustrative and NOT a prescription; consult your doctor for any medication."""
 
-
-# --- Helper Function to Parse LLM Response ---
+# --- Helper Function to Parse LLM Response (ADAPTED FOR NEW PROMPT) ---
 def parse_llm_response(response_text):
-    # ... (Your complete parse_llm_response function as provided previously) ...
-    # This should correctly populate `parsed_data["medications_list"]`
     parsed_data = {
-        "predicted_disease": DEFAULT_MSG_PREDICTED_DISEASE, "reasoning": DEFAULT_MSG_REASONING,
-        "pharmacological": DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK, "medications_list": [],
-        "non_pharmacological_lifestyle": DEFAULT_MSG_LIFESTYLE, "dietary_recommendations": DEFAULT_MSG_DIETARY,
-        "foods_to_eat": "", "foods_to_avoid": "", "general_dos_donts": DEFAULT_MSG_DOS_DONTS,
-        "dos": "", "donts": "", "when_to_seek_help": DEFAULT_MSG_SEEK_HELP, "disclaimer": DEFAULT_MSG_DISCLAIMER
+        "predicted_disease": DEFAULT_MSG_PREDICTED_DISEASE,
+        "reasoning": DEFAULT_MSG_REASONING,
+        "pharmacological": DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK,
+        "medications_list": [],
+        "non_pharmacological_lifestyle": DEFAULT_MSG_LIFESTYLE,
+        "dietary_recommendations": DEFAULT_MSG_DIETARY,
+        "foods_to_eat": "", "foods_to_avoid": "",
+        "general_dos_donts": DEFAULT_MSG_DOS_DONTS,
+        "dos": "", "donts": "",
+        "when_to_seek_help": DEFAULT_MSG_SEEK_HELP,
+        "disclaimer": DEFAULT_MSG_DISCLAIMER
     }
-    disease_match = re.search(r"\*\*Predicted Disease:\*\*\s*(.*?)(?=\n\s*\*\*Reasoning:\*\*|\Z)", response_text, re.DOTALL | re.IGNORECASE)
+
+    disease_match = re.search(r"\*\*Predicted Disease:\*\*\s*(.*?)(?=\n\s*\*\*Reasoning:\*\*|\n\n\n|\Z)", response_text, re.DOTALL | re.IGNORECASE)
     if disease_match and disease_match.group(1).strip(): parsed_data["predicted_disease"] = disease_match.group(1).strip()
-    reasoning_match = re.search(r"\*\*Reasoning:\*\*\s*(.*?)(?=\n\s*\*\*Treatment Guidance:\*\*|\Z)", response_text, re.DOTALL | re.IGNORECASE)
+
+    reasoning_match = re.search(r"\*\*Reasoning:\*\*\s*(.*?)(?=\n\s*\*\*Treatment Guidance:\*\*|\n\n\n|\Z)", response_text, re.DOTALL | re.IGNORECASE)
     if reasoning_match and reasoning_match.group(1).strip(): parsed_data["reasoning"] = reasoning_match.group(1).strip()
+
     disclaimer_match = re.search(r"\*\*Disclaimer:\*\*\s*(.*?)(?:\n\n\n|\Z)", response_text, re.DOTALL | re.IGNORECASE)
     if disclaimer_match and disclaimer_match.group(1).strip(): parsed_data["disclaimer"] = disclaimer_match.group(1).strip()
-    treatment_guidance_block_match = re.search(r"\*\*Treatment Guidance:\*\*\s*(.*?)(?=\n\s*\*\*Disclaimer:\*\*|\Z)", response_text, re.DOTALL | re.IGNORECASE)
+
+    treatment_guidance_block_match = re.search(r"\*\*Treatment Guidance:\*\*\s*(.*?)(?=\n\s*\*\*Disclaimer:\*\*|\n\n\n|\Z)", response_text, re.DOTALL | re.IGNORECASE)
     if treatment_guidance_block_match:
         treatment_text = treatment_guidance_block_match.group(1).strip()
         section_headers_raw = [r"Pharmacological \(Medications\):", r"Non-Pharmacological & Lifestyle:", r"Dietary Recommendations:", r"General Do's & Don'ts:", r"When to Seek Professional Help \(Red Flags\):"]
         all_next_headers_lookahead_parts = [r"^\s*\*\*" + re.escape(header_part) + r"\*\*" for header_part in section_headers_raw]
         combined_lookahead = r"(?:" + "|".join(all_next_headers_lookahead_parts) + r"|\n\n\n|\Z)"
+
         pharma_block_match = re.search(r"^\s*\*\*Pharmacological \(Medications\):\*\*\s*(.*?)" + combined_lookahead, treatment_text, re.DOTALL | re.IGNORECASE | re.MULTILINE)
         if pharma_block_match and pharma_block_match.group(1).strip():
-            pharma_content = pharma_block_match.group(1).strip(); parsed_data["pharmacological"] = pharma_content
+            pharma_content = pharma_block_match.group(1).strip()
+            parsed_data["pharmacological"] = pharma_content
             med_items = re.findall(r"^\s*-\s*\*\*Drug Name:\*\*\s*(.*?)\n\s*-\s*\*\*Purpose:\*\*\s*(.*?)\n(?:\s*-\s*\*\*Common Dosage(?: \(Example Only - Emphasize to consult doctor\))?:\*\*\s*(.*?)\n)?(?:\s*-\s*\*\*Important Notes:\*\*\s*(.*?)(?=\n\s*-|\n\n\n|\Z))?", pharma_content, re.DOTALL | re.IGNORECASE | re.MULTILINE)
-            if med_items: parsed_data["medications_list"] = [{"drug_name": i[0].strip() or "N/A", "purpose": i[1].strip() or "N/A", "dosage": i[2].strip() if i[2] else "Consult doctor.", "notes": i[3].strip() if i[3] else "N/A"} for i in med_items]
+            if med_items:
+                parsed_data["medications_list"] = [{"drug_name": i[0].strip() or "N/A", "purpose": i[1].strip() or "N/A", "dosage": i[2].strip() if i[2] else "Consult doctor.", "notes": i[3].strip() if i[3] else "N/A"} for i in med_items]
             elif "consult a doctor" not in pharma_content.lower() and "information not available" not in pharma_content.lower(): pass
             else: parsed_data["pharmacological"] = DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK
-    # ... (ensure full parsing logic for other sections is included here) ...
+        
+        non_pharma_match = re.search(r"^\s*\*\*Non-Pharmacological & Lifestyle:\*\*\s*(.*?)" + combined_lookahead, treatment_text, re.DOTALL | re.IGNORECASE | re.MULTILINE)
+        if non_pharma_match and non_pharma_match.group(1).strip(): parsed_data["non_pharmacological_lifestyle"] = non_pharma_match.group(1).strip()
+
+        diet_full_match = re.search(r"^\s*\*\*Dietary Recommendations:\*\*\s*(.*?)" + combined_lookahead, treatment_text, re.DOTALL | re.IGNORECASE | re.MULTILINE)
+        if diet_full_match and diet_full_match.group(1).strip():
+            diet_text = diet_full_match.group(1).strip(); parsed_data["dietary_recommendations"] = diet_text
+            eat_match = re.search(r"^\s*-\s*\*\*Foods to Eat:\*\*\s*(.*?)(?=\n\s*-\s*\*\*Foods to Avoid:\*\*|\n\n\n|\Z)", diet_text, re.DOTALL | re.IGNORECASE | re.MULTILINE)
+            if eat_match and eat_match.group(1).strip(): parsed_data["foods_to_eat"] = "\n".join([li.strip("-* ").strip() for li in eat_match.group(1).strip().splitlines() if li.strip("-* ").strip()])
+            avoid_match = re.search(r"^\s*-\s*\*\*Foods to Avoid:\*\*\s*(.*?)(?:\n\n\n|\Z)", diet_text, re.DOTALL | re.IGNORECASE | re.MULTILINE)
+            if avoid_match and avoid_match.group(1).strip(): parsed_data["foods_to_avoid"] = "\n".join([li.strip("-* ").strip() for li in avoid_match.group(1).strip().splitlines() if li.strip("-* ").strip()])
+
+        dos_donts_full_match = re.search(r"^\s*\*\*General Do's & Don'ts:\*\*\s*(.*?)" + combined_lookahead, treatment_text, re.DOTALL | re.IGNORECASE | re.MULTILINE)
+        if dos_donts_full_match and dos_donts_full_match.group(1).strip():
+            dos_donts_text = dos_donts_full_match.group(1).strip(); parsed_data["general_dos_donts"] = dos_donts_text
+            do_match = re.search(r"^\s*-\s*\*\*Do:\*\*\s*(.*?)(?=\n\s*-\s*\*\*Don't:\*\*|\n\n\n|\Z)", dos_donts_text, re.DOTALL | re.IGNORECASE | re.MULTILINE)
+            if do_match and do_match.group(1).strip(): parsed_data["dos"] = "\n".join([li.strip("-* ").strip() for li in do_match.group(1).strip().splitlines() if li.strip("-* ").strip()])
+            dont_match = re.search(r"^\s*-\s*\*\*Don't:\*\*\s*(.*?)(?:\n\n\n|\Z)", dos_donts_text, re.DOTALL | re.IGNORECASE | re.MULTILINE)
+            if dont_match and dont_match.group(1).strip(): parsed_data["donts"] = "\n".join([li.strip("-* ").strip() for li in dont_match.group(1).strip().splitlines() if li.strip("-* ").strip()])
+
+        seek_help_match = re.search(r"^\s*\*\*When to Seek Professional Help \(Red Flags\):\*\*\s*(.*?)" + combined_lookahead, treatment_text, re.DOTALL | re.IGNORECASE | re.MULTILINE)
+        if seek_help_match and seek_help_match.group(1).strip(): parsed_data["when_to_seek_help"] = seek_help_match.group(1).strip()
     return parsed_data
 
-# --- Core Functions ---
-def process_and_load_pdf(pdf_path, display_name, is_default=False):
-    if 'FAISS_INDEX_DIR_ABS' not in globals() and 'FAISS_INDEX_DIR_ABS' not in locals():
-        st.error("FAISS_INDEX_DIR_ABS is not defined. Cannot clear or save index.")
-        return False
-    with st.spinner(f"Processing {display_name}... This may take a few minutes."):
-        if os.path.exists(FAISS_INDEX_DIR_ABS):
-            try:
-                shutil.rmtree(FAISS_INDEX_DIR_ABS)
-                print(f"Cleared existing FAISS index directory: {FAISS_INDEX_DIR_ABS}")
-            except Exception as e:
-                st.warning(f"Could not clear previous index directory: {e}. Proceeding to build new index.")
-        vs = load_and_process_pdf_to_faiss(pdf_path)
+# --- Functions ---
+def initialize_vector_store():
+    """
+    Initializes the vector store.
+    1. Tries to load an existing FAISS store.
+    2. If not found, tries to load and process 'Medical_book.pdf' from DATA_DIR.
+    Updates session state for vector_store, vector_store_loaded, processed_pdf_name, and messages.
+    Spinners and messages related to this process will appear in the sidebar.
+    """
+    # 1. Try to load an existing FAISS store
+    # st.sidebar.info("Checking for existing knowledge base...") # Spinner is better
+    with st.spinner("Checking for existing knowledge base..."): # Spinner in sidebar
+        vs = load_existing_faiss_store()
         if vs:
             st.session_state.vector_store = vs
             st.session_state.vector_store_loaded = True
-            st.session_state.processed_pdf_name = display_name
-            st.session_state.kb_source_is_default = is_default
-            st.session_state.messages = [{"role": "assistant", "content": f"Knowledge base from '{display_name}' is ready. How can I assist?"}]
-            return True
-        else:
-            st.session_state.messages = [{"role": "assistant", "content": f"Failed to process '{display_name}'. Please try again."}]
-            return False
+            st.session_state.processed_pdf_name = "Previously processed medical texts (FAISS)"
+            st.session_state.messages = [{"role": "assistant", "content": "Welcome! Existing medical knowledge base (FAISS) active. How can I assist?"}]
+            # Success message will be handled by the main sidebar logic after this function returns
+            return
 
-def initialize_or_load_kb():
-    vs = load_existing_faiss_store()
-    if vs:
-        st.session_state.vector_store = vs
-        st.session_state.vector_store_loaded = True
-        st.session_state.processed_pdf_name = st.session_state.get("processed_pdf_name", DEFAULT_KB_DISPLAY_NAME)
-        st.session_state.kb_source_is_default = st.session_state.get("kb_source_is_default", True if st.session_state.processed_pdf_name == DEFAULT_KB_DISPLAY_NAME else False)
-        if len(st.session_state.messages) == 1 and "Welcome!" in st.session_state.messages[0]["content"]:
-             st.session_state.messages[0] = {"role": "assistant", "content": f"Welcome! Knowledge base '{st.session_state.processed_pdf_name}' is active."}
-    elif os.path.exists(DEFAULT_PDF_PATH):
-        st.sidebar.info(f"No existing knowledge base found. Processing '{DEFAULT_KB_DISPLAY_NAME}'...")
-        success = process_and_load_pdf(DEFAULT_PDF_PATH, DEFAULT_KB_DISPLAY_NAME, is_default=True)
-        if success: st.sidebar.success(f"Default KB '{DEFAULT_KB_DISPLAY_NAME}' processed.")
-        else: st.sidebar.error(f"Failed to process default KB '{DEFAULT_KB_DISPLAY_NAME}'.")
+    # 2. If no existing store, try to load and process default PDF
+    default_pdf_name = "Medical_book.pdf"
+    default_pdf_path = os.path.join(DATA_DIR, default_pdf_name)
+
+    if os.path.exists(default_pdf_path):
+        # st.sidebar.info(f"Found '{default_pdf_name}'. Attempting to load...") # Spinner is better
+        with st.spinner(f"Processing default KB: '{default_pdf_name}'... This may take a few moments."): # Spinner in sidebar
+            try:
+                processed_vs = load_and_process_pdf_to_faiss(default_pdf_path)
+                if processed_vs:
+                    st.session_state.vector_store = processed_vs
+                    st.session_state.vector_store_loaded = True
+                    st.session_state.processed_pdf_name = default_pdf_name
+                    st.session_state.messages = [{"role": "assistant", "content": f"Welcome! Knowledge base from '{default_pdf_name}' (FAISS) is ready. How can I assist?"}]
+                else: # Processing failed, but file existed
+                    st.session_state.vector_store = None
+                    st.session_state.vector_store_loaded = False
+                    st.session_state.processed_pdf_name = None # Mark as failed to load default
+                    st.session_state.messages = [{"role": "assistant", "content": f"Welcome! Could not process default PDF '{default_pdf_name}'. Please upload a medical reference PDF to begin."}]
+            except Exception as e:
+                st.session_state.vector_store = None
+                st.session_state.vector_store_loaded = False
+                st.session_state.processed_pdf_name = None # Mark as failed to load default
+                st.session_state.messages = [{"role": "assistant", "content": f"Welcome! Error processing default PDF '{default_pdf_name}'. Please upload a medical reference PDF to begin."}]
+                print(f"ERROR in initialize_vector_store processing default PDF '{default_pdf_name}': {traceback.format_exc()}")
     else:
-        st.sidebar.warning(f"Default PDF '{DEFAULT_PDF_NAME}' not found in '{DATA_DIR}'. Please upload a PDF to begin.")
-        st.session_state.messages[0] = {"role": "assistant", "content": f"Welcome! Default knowledge base not found. Please upload a medical PDF."}
+        # Default PDF not found, and no existing store
+        st.session_state.vector_store = None
+        st.session_state.vector_store_loaded = False
+        st.session_state.processed_pdf_name = None # Mark as default not found
+        # Update message only if it's still the generic "Initializing..."
+        if len(st.session_state.messages) == 1 and "Initializing" in st.session_state.messages[0]["content"]:
+             st.session_state.messages = [{"role": "assistant", "content": "Welcome! Default 'Medical_book.pdf' not found. Please upload a medical reference PDF to begin."}]
 
 # --- UI Layout ---
 st.markdown(f"""<div style="text-align: center; padding-top: 2rem; padding-bottom: 1rem;"><h1 class='main-header'><span class='gradient-text'>TATA md AI Medical Advisor</span></h1><p class='sub-header'>Leveraging medical literature to offer insights on symptoms. <br><em>This tool provides information for educational purposes only and is not a substitute for professional medical advice.</em></p></div>""", unsafe_allow_html=True)
 
 # --- Sidebar ---
 with st.sidebar:
-    logo_path = os.path.join(ASSETS_DIR, "tatmd.png"); default_logo_url = "https://www.tatamd.com/images/logo_TATA%20MD.svg"
+    logo_path = os.path.join(ASSETS_DIR, "tatmd.png")
+    default_logo_url = "https://www.tatamd.com/images/logo_TATA%20MD.svg"
     if os.path.exists(logo_path): st.image(logo_path, width=180, use_container_width=False)
-    else: st.markdown(f"""<div style='text-align: center; margin-bottom: 1rem;'><img src="{default_logo_url}" alt="TATA MD Logo" style="width: 180px; margin-bottom: 10px;" onerror="this.style.display='none'; this.parentElement.innerHTML+='<p style=\'color:{text_color_yellow};\'>TATA MD Logo</p>';"></div>""", unsafe_allow_html=True)
+    else: st.markdown(f"""<div style="text-align: center; margin-bottom: 1rem;"><img src="{default_logo_url}" alt="TATA MD Logo" style="width: 180px; margin-bottom: 10px;" onerror="this.style.display='none'; this.parentElement.innerHTML+='<p style=\'color:{text_color_yellow};\'>TATA MD Logo</p>';"></div>""", unsafe_allow_html=True)
+    
     st.markdown(f"<h2 style='text-align: center; color: {primary_accent_pink}; margin-bottom: 1rem;'>Knowledge Base</h2>", unsafe_allow_html=True)
-    if not st.session_state.vector_store_loaded: initialize_or_load_kb()
-    elif st.session_state.vector_store_loaded: st.success(f"Active KB: {st.session_state.processed_pdf_name or 'Unknown Source'}")
-    st.markdown("---")
-    st.markdown("<p style='font-weight: bold; color: #FFB74D;'>Upload Custom PDF:</p>", unsafe_allow_html=True)
-    uploaded_file_sb = st.file_uploader("Select a medical PDF to build a new knowledge base.", type="pdf", key="pdf_uploader_sidebar_main_v2")
-    if st.button("Process Uploaded PDF", key="process_uploaded_button_main_v2", help="Process the uploaded PDF. This will replace the current knowledge base."):
+
+    # Initialize KB on first run if not already attempted for this session
+    if not st.session_state.kb_init_attempted_this_session:
+        initialize_vector_store() # This function handles its own spinners and updates session state
+        st.session_state.kb_init_attempted_this_session = True
+        st.rerun() # Rerun to ensure messages and UI reflect the initialization immediately
+
+    # Display current KB status based on session state
+    if st.session_state.vector_store_loaded:
+        st.success(f"Active KB: {st.session_state.processed_pdf_name or 'Loaded Successfully'}")
+    elif st.session_state.processed_pdf_name is None and not st.session_state.vector_store_loaded:
+        # This condition implies default PDF was either not found or failed to load
+        default_pdf_name_check = "Medical_book.pdf"
+        default_pdf_path_check = os.path.join(DATA_DIR, default_pdf_name_check)
+        if not os.path.exists(default_pdf_path_check):
+            st.warning(f"Default '{default_pdf_name_check}' not found in 'data/' folder. Please upload a PDF.")
+        else: # Default PDF exists but failed to load
+            st.error(f"Failed to load default KB '{default_pdf_name_check}'. Please upload a PDF or check the file.")
+    else: # Catch-all for other unloaded states
+        st.info("No active Knowledge Base. Please upload a PDF.")
+
+    uploaded_file_sb = st.file_uploader("Upload New Medical Reference (PDF)", type="pdf", key="pdf_uploader_sidebar")
+    if st.button("Process PDF & Build KB", key="process_button_sidebar", help="Upload and process a new PDF to create or update the knowledge base."):
         if uploaded_file_sb is not None:
-            user_pdf_path = os.path.join(DATA_DIR, uploaded_file_sb.name)
-            with open(user_pdf_path, "wb") as f: f.write(uploaded_file_sb.getbuffer())
-            success = process_and_load_pdf(user_pdf_path, uploaded_file_sb.name, is_default=False)
-            if success: st.sidebar.success(f"Custom KB '{uploaded_file_sb.name}' processed.")
-            else: st.sidebar.error(f"Failed to process '{uploaded_file_sb.name}'.")
-            st.rerun()
-        else: st.warning("Please upload a PDF file first.")
-    if st.session_state.vector_store_loaded and not st.session_state.kb_source_is_default:
-        if st.button("Load Default KB", key="switch_to_default_kb_main_v2"):
-            if os.path.exists(DEFAULT_PDF_PATH):
-                st.sidebar.info(f"Switching to '{DEFAULT_KB_DISPLAY_NAME}'...")
-                success = process_and_load_pdf(DEFAULT_PDF_PATH, DEFAULT_KB_DISPLAY_NAME, is_default=True)
-                if success: st.sidebar.success(f"Default KB '{DEFAULT_KB_DISPLAY_NAME}' loaded.")
-                else: st.sidebar.error(f"Failed to load default KB '{DEFAULT_KB_DISPLAY_NAME}'.")
-                st.rerun()
-            else: st.error(f"Default PDF '{DEFAULT_PDF_NAME}' not found. Cannot switch.")
+            file_path = os.path.join(DATA_DIR, uploaded_file_sb.name)
+            with open(file_path, "wb") as f: f.write(uploaded_file_sb.getbuffer())
+            
+            # Clear previous KB state before processing new one
+            st.session_state.vector_store = None
+            st.session_state.vector_store_loaded = False
+            st.session_state.processed_pdf_name = None
+            
+            with st.spinner(f"Processing {uploaded_file_sb.name}... This may take a while."): # Spinner in sidebar
+                processed_vs = load_and_process_pdf_to_faiss(file_path)
+                if processed_vs:
+                    st.session_state.vector_store = processed_vs
+                    st.session_state.vector_store_loaded = True
+                    st.session_state.processed_pdf_name = uploaded_file_sb.name
+                    st.session_state.messages = [{"role": "assistant", "content": f"Knowledge base from '{uploaded_file_sb.name}' (FAISS) is ready. How can I assist?"}]
+                else:
+                    st.session_state.messages.append({"role": "assistant", "content": f"Failed to process '{uploaded_file_sb.name}'. Please try again or use a different PDF."})
+                    # Error message displayed by the KB status logic on rerun
+            st.rerun() # Rerun to reflect changes immediately
+        else:
+            st.warning("Please upload a PDF file first.")
+            
     st.markdown("---"); st.markdown(f"<p style='font-size: 0.8em; text-align: center; opacity: 0.7; color: {text_color_blue} !important;'>Powered by Advanced AI</p>", unsafe_allow_html=True)
 
 # --- Main Chat Interface ---
 st.markdown("<div class='section-header'>Symptom Analysis & Guidance</div>", unsafe_allow_html=True)
 chat_container = st.container()
 with chat_container:
-    # ... (Your existing, detailed message display loop from the previous version) ...
-    # Ensure this section correctly displays user messages and the structured assistant responses
-    # including the iteration over data.get('medications_list', []) for multiple medication boxes.
     for i, msg in enumerate(st.session_state.messages):
         is_structured_response = isinstance(msg["content"], dict) and "predicted_disease" in msg["content"]
         with st.chat_message(msg["role"], avatar="🧑‍⚕️" if msg["role"] == "assistant" else "👤"):
             if msg["role"] == "user": st.markdown(f"<div style='text-align: right; color: {text_color_yellow} !important; padding: 0.5rem;'>{msg['content']}</div>", unsafe_allow_html=True)
             elif is_structured_response:
-                st.markdown("<div class='analysis-complete-message'>", unsafe_allow_html=True) # Wrapper class
+                st.markdown("<div class='analysis-complete-message'>", unsafe_allow_html=True)
                 data = msg["content"]
                 symptoms_input_string = data.get("symptoms_input", "")
                 if symptoms_input_string:
@@ -1219,7 +1297,7 @@ with chat_container:
                     st.markdown(f"<div class='treatment-guidance-subheader pharma-header'>Medications</div>", unsafe_allow_html=True)
                     med_list = data.get('medications_list', []); pharma_fb = data.get('pharmacological', DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK).strip()
                     if med_list:
-                        for med in med_list: # Iterate and display each medication in its own box
+                        for med in med_list:
                             med_h = "<div class='medication-item'>"
                             med_h += f"<p class='med-drug-name'><strong>{med.get('drug_name', 'N/A')}</strong></p>"
                             if med.get('purpose') and med.get('purpose') != 'N/A': med_h += f"<p class='med-purpose'>Purpose: <span>{med.get('purpose')}</span></p>"
@@ -1227,13 +1305,11 @@ with chat_container:
                             if d_txt and d_txt not in ['N/A', 'Consult doctor.', 'Consult doctor for dosage.']: med_h += f"<p class='med-dosage'>Dosage Example: <span>{d_txt}</span> <em>(Not medical advice)</em></p>"
                             if med.get('notes') and med.get('notes') != 'N/A': med_h += f"<p class='med-notes'>Notes: <span>{med.get('notes')}</span></p>"
                             med_h += "</div>"; st.markdown(med_h, unsafe_allow_html=True)
-                    elif pharma_fb and pharma_fb != DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK and "not available" not in pharma_fb.lower():
-                        st.markdown(f"<div class='medication-item'>{pharma_fb}</div>", unsafe_allow_html=True) # Wrap general fallback in item box
+                    elif pharma_fb and pharma_fb != DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK and "not available" not in pharma_fb.lower(): st.markdown(pharma_fb, unsafe_allow_html=True)
                     else: st.markdown(f"<p style='color:{text_color_blue}; font-style:italic;'>{DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK}</p>", unsafe_allow_html=True)
-                # ... (Rest of your expanders: Lifestyle, Dietary, Do/Don'ts, Red Flags - ensure they are complete) ...
                 with st.expander("🌿 Non-Pharmacological & Lifestyle"):
                     st.markdown(f"<div class='treatment-guidance-subheader lifestyle-header'>Lifestyle & Home Care</div>", unsafe_allow_html=True)
-                    c = data.get('non_pharmacological_lifestyle', DEFAULT_MSG_LIFESTYLE).strip();
+                    c = data.get('non_pharmacological_lifestyle', DEFAULT_MSG_LIFESTYLE).strip()
                     if c and c != DEFAULT_MSG_LIFESTYLE and "not available" not in c.lower(): st.markdown(c, unsafe_allow_html=True)
                     else: st.markdown(f"<p style='color:{text_color_blue}; font-style:italic;'>{DEFAULT_MSG_LIFESTYLE}</p>", unsafe_allow_html=True)
                 with st.expander("🥗 Dietary Recommendations"):
@@ -1263,25 +1339,23 @@ with chat_container:
                 with st.expander("🚨 When to Seek Professional Help (Red Flags)", expanded=True):
                     st.markdown(f"<div class='treatment-guidance-subheader redflags-header'>Urgent Care / Red Flags</div>", unsafe_allow_html=True)
                     c = data.get('when_to_seek_help', DEFAULT_MSG_SEEK_HELP).strip()
-                    if c and c != DEFAULT_MSG_SEEK_HELP and "always consult" not in c.lower(): st.error(c)
+                    if c and c != DEFAULT_MSG_SEEK_HELP and "always consult" not in c.lower(): st.error(c) # Use st.error for red flags to make them stand out
                     else: st.markdown(f"<p style='color:{text_color_blue}; font-style:italic;'>{DEFAULT_MSG_SEEK_HELP}</p>", unsafe_allow_html=True)
-
                 st.markdown(f"<hr style='border-color: {card_border_color}; margin-top:1.5rem; margin-bottom:1rem;'>", unsafe_allow_html=True)
                 st.markdown("<div class='disclaimer-box'>" + f"<i><b>Disclaimer:</b> {data.get('disclaimer', DEFAULT_MSG_DISCLAIMER)}</i>" + "</div>", unsafe_allow_html=True)
-                st.markdown("</div>", unsafe_allow_html=True) # Close .analysis-complete-message
+                st.markdown("</div>", unsafe_allow_html=True)
             else: st.markdown(f"<div style='padding: 0.5rem; color: {text_color_yellow} !important;'>{str(msg['content'])}</div>", unsafe_allow_html=True)
 
-# --- Chat Input ---
 if user_symptoms := st.chat_input("Describe symptoms (e.g., 'fever, persistent cough, body aches')...", key="symptom_input_main"):
     if not st.session_state.vector_store_loaded or st.session_state.vector_store is None:
         st.session_state.messages.append({"role": "user", "content": user_symptoms})
-        st.session_state.messages.append({"role": "assistant", "content": "⚠️ The Knowledge Base is not active. Please upload a PDF or ensure the default PDF is processed."})
+        st.session_state.messages.append({"role": "assistant", "content": "⚠️ Please ensure a medical reference PDF is successfully loaded first to enable symptom analysis. Check sidebar for KB status."})
     else:
         st.session_state.messages.append({"role": "user", "content": user_symptoms})
         with st.status("🧑‍⚕️ AI Advisor is thinking...", expanded=True) as status_ui:
             st.write("Reviewing symptoms against medical knowledge base...")
             try:
-                raw_response = query_rag_pipeline_faiss(user_symptoms, st.session_state.vector_store)
+                raw_response = query_rag_pipeline_faiss(user_symptoms, st.session_state.vector_store) # Uses FAISS function
                 st.write("Received response from AI, now parsing and formatting...")
                 print(f"\n--- RAW LLM Response (from RAG pipeline) START ---\n{raw_response}\n--- RAW LLM Response (from RAG pipeline) END ---\n")
                 parsed_response_data = parse_llm_response(raw_response)
@@ -1293,9 +1367,8 @@ if user_symptoms := st.chat_input("Describe symptoms (e.g., 'fever, persistent c
                 detailed_error_message = f"An error occurred during analysis: {str(e)}. Traceback: {traceback.format_exc()}"
                 st.session_state.messages.append({"role": "assistant", "content": "Sorry, an unexpected error occurred while processing your request."})
                 status_ui.update(label="Error processing request.", state="error", expanded=True)
-                st.error("An internal error occurred. Please try again later or check logs.")
+                st.error("An internal error occurred. Please try again later or check logs.") # Show error in main app
                 print(f"ERROR in Streamlit chat input processing: {detailed_error_message}")
     st.rerun()
 
-# --- Footer ---
 st.markdown(f"""<div style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba({int(bg_color[1:3], 16)}, {int(bg_color[3:5], 16)}, {int(bg_color[5:7], 16)}, 0.9); backdrop-filter: blur(5px); padding: 0.5rem; text-align: center; border-top: 1px solid {card_border_color}; z-index: 99;"><p style="margin: 0; font-size: 0.8rem; opacity: 0.7; color: {text_color_blue} !important;">TATA md AI Medical Advisor © {datetime.now().year} - For Informational Purposes Only</p></div>""", unsafe_allow_html=True)
