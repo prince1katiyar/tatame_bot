@@ -41,7 +41,7 @@ except ImportError as e:
 # --- Page Configuration ---
 favicon_path = os.path.join(ASSETS_DIR, "favicon.png")
 st.set_page_config(
-    page_title=" Tata MD AI Medical Advisor ",
+    page_title="Tata MD AI Medical Advisor",
     page_icon=favicon_path if os.path.exists(favicon_path) else "🩺",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -509,7 +509,7 @@ def initialize_vector_store():
              st.session_state.messages = [{"role": "assistant", "content": "Welcome! Default 'Medical_book.pdf' not found. Please upload a medical reference PDF to begin."}]
 
 # --- UI Layout ---
-st.markdown(f"""<div style="text-align: center; padding-top: 2rem; padding-bottom: 1rem;"><h1 class='main-header'><span class='gradient-text'>TATA md AI Medical Advisor</span></h1><p class='sub-header'>Leveraging medical literature to offer insights on symptoms. <br><em>This tool provides information for educational purposes only and is not a substitute for professional medical advice.</em></p></div>""", unsafe_allow_html=True)
+st.markdown(f"""<div style="text-align: center; padding-top: 2rem; padding-bottom: 1rem;"><h1 class='main-header'><span class='gradient-text'>Tata MD AI Medical Advisor</span></h1><p class='sub-header'>Leveraging medical literature to offer insights on symptoms. <br><em>This tool provides information for educational purposes only and is not a substitute for professional medical advice.</em></p></div>""", unsafe_allow_html=True)
 
 # --- Sidebar ---
 with st.sidebar:
@@ -669,5 +669,5 @@ if user_symptoms := st.chat_input("Describe symptoms (e.g., 'fever, persistent c
                 print(f"ERROR in Streamlit chat input processing: {detailed_error_message}")
     st.rerun()
 
-st.markdown(f"""<div style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba({int(bg_color[1:3], 16)}, {int(bg_color[3:5], 16)}, {int(bg_color[5:7], 16)}, 0.9); backdrop-filter: blur(5px); padding: 0.5rem; text-align: center; border-top: 1px solid {card_border_color}; z-index: 99;"><p style="margin: 0; font-size: 0.8rem; opacity: 0.7; color: {text_color_blue} !important;">TATA md AI Medical Advisor © {datetime.now().year} - For Informational Purposes Only</p></div>""", unsafe_allow_html=True)
+st.markdown(f"""<div style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba({int(bg_color[1:3], 16)}, {int(bg_color[3:5], 16)}, {int(bg_color[5:7], 16)}, 0.9); backdrop-filter: blur(5px); padding: 0.5rem; text-align: center; border-top: 1px solid {card_border_color}; z-index: 99;"><p style="margin: 0; font-size: 0.8rem; opacity: 0.7; color: {text_color_blue} !important;">Tata MD AI Medical Advisor © {datetime.now().year} - For Informational Purposes Only</p></div>""", unsafe_allow_html=True)
 
