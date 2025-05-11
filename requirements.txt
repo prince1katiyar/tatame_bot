@@ -1,0 +1,28 @@
+# requirements.txt - For Medical RAG Chatbot with FAISS
+
+# Core Streamlit and Langchain
+streamlit==1.45.0
+langchain==0.3.25
+langchain-core==0.3.59
+langchain-openai==0.3.16
+langchain-community==0.3.23 # For FAISS, DuckDuckGo, etc.
+langchain-text-splitters==0.3.8
+
+# Vector Store (FAISS instead of Chroma)
+faiss-cpu # For FAISS vector store (CPU version)
+# chroma-hnswlib==0.7.6 # REMOVED
+# chromadb==0.6.3 # REMOVED
+# langchain-chroma==0.2.3 # REMOVED
+
+# PDF Processing
+pypdf==5.4.0
+
+# OpenAI and Tokenizer
+openai==1.78.0
+tiktoken==0.9.0
+
+# Web Search
+duckduckgo_search==8.0.1
+
+# Environment Variables
+python-dotenv==1.1.0

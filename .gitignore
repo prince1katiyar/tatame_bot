@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Environment
+.env
+.venv/
+venv/
+ENV/
+env/
+env.bak
+venv.bak
+
+# Streamlit
+
+
+# ChromaDB
+medical_rag_chatbot/chroma_db/
+
+# Data (if user uploads are stored here and you don't want to commit them)
+# medical_rag_chatbot/data/*.pdf 
+# medical_rag_chatbot/data/ !(dummy_test_book_v3_meds.pdf) # If you want to keep the dummy
+
+# Other
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journaldata/Medical_book.pdf
+data/Medical_book.pdf
+data/Medical_book.pdf
+faiss_index_store/
+faiss_medical_book.pkl # If you ever used this name
+# ...
