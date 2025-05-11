@@ -41,7 +41,7 @@ except ImportError as e:
 # --- Page Configuration ---
 favicon_path = os.path.join(ASSETS_DIR, "favicon.png")
 st.set_page_config(
-    page_title="Tata MD AI Medical Advisor",
+    page_title=" Tata MD AI Medical Advisor ",
     page_icon=favicon_path if os.path.exists(favicon_path) else "🩺",
     layout="wide",
     initial_sidebar_state="expanded",
