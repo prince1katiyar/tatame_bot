@@ -703,7 +703,6 @@
 
 
 
-
 # medical_rag_chatbot/main_app.py
 
 import streamlit as st
@@ -712,8 +711,8 @@ from dotenv import load_dotenv
 import re
 from datetime import datetime
 import json
-import traceback
-import shutil # For potentially cleaning up index directory
+import traceback # Ensure traceback is imported for detailed error logging
+import shutil # For clearing FAISS index directory
 
 # --- Define SCRIPT_DIR, ASSETS_DIR, DATA_DIR first for robustness ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -731,16 +730,16 @@ try:
         query_rag_pipeline_faiss,
         load_existing_faiss_store,
         OPENAI_API_KEY,
-        FAISS_INDEX_DIR_ABS # Import the path to the FAISS index directory
+        FAISS_INDEX_DIR_ABS # Make sure this is exported from rag_pipeline.py
     )
 except ImportError as e:
     st.error(
         f"Critical Error: Could not import FAISS-specific functions or constants from 'rag_pipeline.py'. "
-        f"Please ensure 'rag_pipeline.py' is correctly set up for FAISS. Specific error: {e}"
+        f"Ensure 'rag_pipeline.py' defines FAISS_INDEX_DIR_ABS and FAISS functions. Error: {e}"
     )
     st.stop()
 
-# --- Page Configuration (remains the same) ---
+# --- Page Configuration ---
 favicon_path = os.path.join(ASSETS_DIR, "favicon.png")
 st.set_page_config(
     page_title="TATA md AI Medical Advisor",
@@ -749,9 +748,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- Theme Colors and CSS (remains the same as your extensive CSS block) ---
-# For brevity, I'll assume your large CSS block from the previous message is here.
-# Make sure it's included.
+# --- Theme Colors (using your provided theme) ---
 bg_color = "#141E30"; text_color_yellow = "#FFFACD"; text_color_blue = "#87CEFA"; primary_accent_pink = "#FF3CAC"
 secondary_accent_blue = "#2B86C5"; secondary_accent_purple = "#784BA0"; dark_theme_bg_accent = "#243B55"
 highlight_color_medication = "#FFB74D"; highlight_color_med_purpose = "#AED581"; highlight_color_med_dosage = "#FFF176"
@@ -760,7 +757,12 @@ expander_header_bg_color = f"linear-gradient(135deg, rgba(255, 60, 172, 0.4) 0%,
 expander_content_bg_color = f"rgba(43, 134, 197, 0.15)"; card_bg_color = f"rgba({int(secondary_accent_blue[1:3], 16)}, {int(secondary_accent_blue[3:5], 16)}, {int(secondary_accent_blue[5:7], 16)}, 0.4)"
 card_border_color = f"rgba({int(primary_accent_pink[1:3], 16)}, {int(primary_accent_pink[3:5], 16)}, {int(primary_accent_pink[5:7], 16)}, 0.3)"
 analysis_done_chat_bg = f"rgba({int(secondary_accent_blue[1:3], 16)}, {int(secondary_accent_blue[3:5], 16)}, {int(secondary_accent_blue[5:7], 16)}, 0.25)"
-st.markdown(f"""<style> ... YOUR EXTENSIVE CSS HERE ... </style>""", unsafe_allow_html=True) # Placeholder for your CSS
+
+# --- Custom CSS (Your provided CSS) ---
+# For brevity, I'm assuming your extensive CSS block is correctly placed here.
+# Ensure the class names in the CSS match the ones used in the Python markdown.
+st.markdown(f"""<style> ... YOUR EXTENSIVE CSS FROM PREVIOUS MESSAGE ... </style>""", unsafe_allow_html=True)
+
 
 # --- Load Environment Variables ---
 load_dotenv()
@@ -771,22 +773,22 @@ if not OPENAI_API_KEY:
 if not os.path.exists(DATA_DIR): os.makedirs(DATA_DIR)
 if not os.path.exists(ASSETS_DIR): os.makedirs(ASSETS_DIR)
 
+
 # --- Constants for Default Book ---
-DEFAULT_PDF_NAME = "Medical_book.pdf" # Name of your default PDF
+DEFAULT_PDF_NAME = "Medical_book.pdf" # UPDATED to your specified PDF name
 DEFAULT_PDF_PATH = os.path.join(DATA_DIR, DEFAULT_PDF_NAME)
-DEFAULT_KB_DISPLAY_NAME = "General Medical Reference (Default)"
+DEFAULT_KB_DISPLAY_NAME = "Medical Reference (Default)" # More generic display name
 
 # --- Session State ---
 if "vector_store_loaded" not in st.session_state: st.session_state.vector_store_loaded = False
 if "vector_store" not in st.session_state: st.session_state.vector_store = None
 if "processed_pdf_name" not in st.session_state: st.session_state.processed_pdf_name = None
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": f"Welcome! Loading the {DEFAULT_KB_DISPLAY_NAME}. How can I assist?"}]
-if "kb_source_is_default" not in st.session_state: # Track if current KB is default
-    st.session_state.kb_source_is_default = False
+    st.session_state["messages"] = [{"role": "assistant", "content": f"Welcome! Initializing with the {DEFAULT_KB_DISPLAY_NAME}..."}]
+if "kb_source_is_default" not in st.session_state:
+    st.session_state.kb_source_is_default = False # Will be set to True if default KB is loaded
 
 # --- Default Messages (remains the same) ---
-# ... (Your DEFAULT_MSG_... constants here) ...
 DEFAULT_MSG_PREDICTED_DISEASE = "Not specified by AI or not clearly identified from the context."
 DEFAULT_MSG_REASONING = "Reasoning not provided or an error occurred parsing the response."
 DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK = "Information not available for specific medications. Consult a healthcare professional."
@@ -794,12 +796,15 @@ DEFAULT_MSG_LIFESTYLE = "Specific lifestyle guidance not found. Consult a health
 DEFAULT_MSG_DIETARY = "Specific dietary recommendations not found. Consult a healthcare professional."
 DEFAULT_MSG_DOS_DONTS = "Specific Do's & Don'ts not found. Consult a healthcare professional."
 DEFAULT_MSG_SEEK_HELP = "Always consult a doctor if symptoms are severe, worsen, or if you have any concerns."
-DEFAULT_MSG_DISCLAIMER = "This information is for educational purposes only..."
+DEFAULT_MSG_DISCLAIMER = """This information is for educational purposes only and not a substitute for professional medical advice, diagnosis, or treatment.
+Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
+Never disregard professional medical advice or delay in seeking it because of something you have read from this chatbot.
+Medication details are illustrative and NOT a prescription; consult your doctor for any medication."""
 
-
-# --- Helper Function to Parse LLM Response (remains the same) ---
+# --- Helper Function to Parse LLM Response (Your existing complex parser) ---
 def parse_llm_response(response_text):
-    # ... (Your existing parse_llm_response function here) ...
+    # ... (Your existing, detailed parse_llm_response function here) ...
+    # For brevity, this is a placeholder. Use your full parser.
     parsed_data = {
         "predicted_disease": DEFAULT_MSG_PREDICTED_DISEASE, "reasoning": DEFAULT_MSG_REASONING,
         "pharmacological": DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK, "medications_list": [],
@@ -807,11 +812,12 @@ def parse_llm_response(response_text):
         "foods_to_eat": "", "foods_to_avoid": "", "general_dos_donts": DEFAULT_MSG_DOS_DONTS,
         "dos": "", "donts": "", "when_to_seek_help": DEFAULT_MSG_SEEK_HELP, "disclaimer": DEFAULT_MSG_DISCLAIMER
     }
-    # Simplified regex for brevity, use your full robust parser here
     disease_match = re.search(r"\*\*Predicted Disease:\*\*\s*(.*?)(?=\n\s*\*\*Reasoning:\*\*|\Z)", response_text, re.DOTALL | re.IGNORECASE)
     if disease_match and disease_match.group(1).strip(): parsed_data["predicted_disease"] = disease_match.group(1).strip()
-    # ... (Continue with your full parsing logic for all sections) ...
-    # Ensure your parser correctly populates "medications_list"
+    reasoning_match = re.search(r"\*\*Reasoning:\*\*\s*(.*?)(?=\n\s*\*\*Treatment Guidance:\*\*|\Z)", response_text, re.DOTALL | re.IGNORECASE)
+    if reasoning_match and reasoning_match.group(1).strip(): parsed_data["reasoning"] = reasoning_match.group(1).strip()
+    disclaimer_match = re.search(r"\*\*Disclaimer:\*\*\s*(.*?)(?:\n\n\n|\Z)", response_text, re.DOTALL | re.IGNORECASE)
+    if disclaimer_match and disclaimer_match.group(1).strip(): parsed_data["disclaimer"] = disclaimer_match.group(1).strip()
     treatment_guidance_block_match = re.search(r"\*\*Treatment Guidance:\*\*\s*(.*?)(?=\n\s*\*\*Disclaimer:\*\*|\Z)", response_text, re.DOTALL | re.IGNORECASE)
     if treatment_guidance_block_match:
         treatment_text = treatment_guidance_block_match.group(1).strip()
@@ -820,11 +826,9 @@ def parse_llm_response(response_text):
         combined_lookahead = r"(?:" + "|".join(all_next_headers_lookahead_parts) + r"|\n\n\n|\Z)"
         pharma_block_match = re.search(r"^\s*\*\*Pharmacological \(Medications\):\*\*\s*(.*?)" + combined_lookahead, treatment_text, re.DOTALL | re.IGNORECASE | re.MULTILINE)
         if pharma_block_match and pharma_block_match.group(1).strip():
-            pharma_content = pharma_block_match.group(1).strip()
-            parsed_data["pharmacological"] = pharma_content
+            pharma_content = pharma_block_match.group(1).strip(); parsed_data["pharmacological"] = pharma_content
             med_items = re.findall(r"^\s*-\s*\*\*Drug Name:\*\*\s*(.*?)\n\s*-\s*\*\*Purpose:\*\*\s*(.*?)\n(?:\s*-\s*\*\*Common Dosage(?: \(Example Only - Emphasize to consult doctor\))?:\*\*\s*(.*?)\n)?(?:\s*-\s*\*\*Important Notes:\*\*\s*(.*?)(?=\n\s*-|\n\n\n|\Z))?", pharma_content, re.DOTALL | re.IGNORECASE | re.MULTILINE)
-            if med_items:
-                parsed_data["medications_list"] = [{"drug_name": i[0].strip() or "N/A", "purpose": i[1].strip() or "N/A", "dosage": i[2].strip() if i[2] else "Consult doctor.", "notes": i[3].strip() if i[3] else "N/A"} for i in med_items]
+            if med_items: parsed_data["medications_list"] = [{"drug_name": i[0].strip() or "N/A", "purpose": i[1].strip() or "N/A", "dosage": i[2].strip() if i[2] else "Consult doctor.", "notes": i[3].strip() if i[3] else "N/A"} for i in med_items]
             elif "consult a doctor" not in pharma_content.lower() and "information not available" not in pharma_content.lower(): pass
             else: parsed_data["pharmacological"] = DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK
     return parsed_data
@@ -833,52 +837,61 @@ def parse_llm_response(response_text):
 # --- Core Functions ---
 def process_and_load_pdf(pdf_path, display_name, is_default=False):
     """Processes a PDF and loads it into the FAISS vector store."""
+    # Ensure FAISS_INDEX_DIR_ABS is available (should be imported from rag_pipeline.py)
+    if 'FAISS_INDEX_DIR_ABS' not in globals() and 'FAISS_INDEX_DIR_ABS' not in locals():
+        st.error("FAISS_INDEX_DIR_ABS is not defined. Cannot clear or save index.")
+        return False
+        
     with st.spinner(f"Processing {display_name}... This may take a few minutes."):
-        # Clear previous index if processing a new PDF (default or uploaded)
-        # This ensures we don't mix indexes.
         if os.path.exists(FAISS_INDEX_DIR_ABS):
             try:
                 shutil.rmtree(FAISS_INDEX_DIR_ABS)
                 print(f"Cleared existing FAISS index directory: {FAISS_INDEX_DIR_ABS}")
             except Exception as e:
-                st.error(f"Could not clear previous index: {e}")
-                # Decide if you want to proceed or stop
+                st.warning(f"Could not clear previous index directory: {e}. Proceeding to build new index.")
         
-        vs = load_and_process_pdf_to_faiss(pdf_path)
+        vs = load_and_process_pdf_to_faiss(pdf_path) # From rag_pipeline.py
         if vs:
             st.session_state.vector_store = vs
             st.session_state.vector_store_loaded = True
             st.session_state.processed_pdf_name = display_name
             st.session_state.kb_source_is_default = is_default
             st.session_state.messages = [{"role": "assistant", "content": f"Knowledge base from '{display_name}' is ready. How can I assist?"}]
-            st.success(f"Knowledge base built from '{display_name}'!")
+            # st.success is better in sidebar for this action
             return True
         else:
             st.session_state.messages = [{"role": "assistant", "content": f"Failed to process '{display_name}'. Please try again."}]
-            st.error(f"Failed to process '{display_name}'.")
+            # st.error is better in sidebar
             return False
 
-def initialize_default_kb():
+def initialize_or_load_kb():
     """Tries to load an existing FAISS store or process the default PDF."""
-    vs = load_existing_faiss_store()
+    # Attempt to load existing store first
+    vs = load_existing_faiss_store() # From rag_pipeline.py
     if vs:
         st.session_state.vector_store = vs
         st.session_state.vector_store_loaded = True
-        # We don't know for sure if the loaded index is from the default PDF.
-        # For simplicity, we'll assume if an index exists, it's usable.
-        # A more robust system would store metadata about the index source.
-        st.session_state.processed_pdf_name = st.session_state.get("processed_pdf_name", DEFAULT_KB_DISPLAY_NAME) # Keep existing name if available
-        st.session_state.kb_source_is_default = st.session_state.get("kb_source_is_default", True) # Assume default if not set
-        st.sidebar.success(f"Active KB: {st.session_state.processed_pdf_name}")
+        # Try to retain the name if it was set, otherwise assume it's the default one if loaded at startup
+        st.session_state.processed_pdf_name = st.session_state.get("processed_pdf_name", DEFAULT_KB_DISPLAY_NAME)
+        st.session_state.kb_source_is_default = st.session_state.get("kb_source_is_default", True if st.session_state.processed_pdf_name == DEFAULT_KB_DISPLAY_NAME else False)
+
+        # Update welcome message if it's the initial one
         if len(st.session_state.messages) == 1 and "Welcome!" in st.session_state.messages[0]["content"]:
-             st.session_state.messages[0] = {"role": "assistant", "content": f"Welcome! Knowledge base '{st.session_state.processed_pdf_name}' active."}
+             st.session_state.messages[0] = {"role": "assistant", "content": f"Welcome! Knowledge base '{st.session_state.processed_pdf_name}' is active."}
 
     elif os.path.exists(DEFAULT_PDF_PATH):
+        # No existing store, and default PDF exists, so process it.
         st.sidebar.info(f"No existing knowledge base found. Processing '{DEFAULT_KB_DISPLAY_NAME}'...")
-        process_and_load_pdf(DEFAULT_PDF_PATH, DEFAULT_KB_DISPLAY_NAME, is_default=True)
+        success = process_and_load_pdf(DEFAULT_PDF_PATH, DEFAULT_KB_DISPLAY_NAME, is_default=True)
+        if success:
+            st.sidebar.success(f"Default KB '{DEFAULT_KB_DISPLAY_NAME}' processed.")
+        else:
+            st.sidebar.error(f"Failed to process default KB '{DEFAULT_KB_DISPLAY_NAME}'.")
     else:
-        st.sidebar.warning(f"Default PDF '{DEFAULT_PDF_NAME}' not found in '{DATA_DIR}'. Please upload a PDF.")
-        st.session_state.messages[0] = {"role": "assistant", "content": f"Welcome! Default knowledge base not found. Please upload a medical PDF."}
+        # No existing store, and default PDF is also missing.
+        st.sidebar.warning(f"Default PDF '{DEFAULT_PDF_NAME}' not found in '{DATA_DIR}'. Please upload a PDF to begin.")
+        st.session_state.messages[0] = {"role": "assistant", "content": f"Welcome! Default knowledge base not found. Please upload a medical PDF to create one."}
+
 
 # --- UI Layout ---
 # ... (Your main header markdown) ...
@@ -887,48 +900,50 @@ st.markdown(f"""<div style="text-align: center; padding-top: 2rem; padding-botto
 
 # --- Sidebar ---
 with st.sidebar:
-    # ... (Your logo display logic) ...
     logo_path = os.path.join(ASSETS_DIR, "tatmd.png"); default_logo_url = "https://www.tatamd.com/images/logo_TATA%20MD.svg"
     if os.path.exists(logo_path): st.image(logo_path, width=180, use_container_width=False)
     else: st.markdown(f"""<div style='text-align: center; margin-bottom: 1rem;'><img src="{default_logo_url}" alt="TATA MD Logo" style="width: 180px; margin-bottom: 10px;" onerror="this.style.display='none'; this.parentElement.innerHTML+='<p style=\'color:{text_color_yellow};\'>TATA MD Logo</p>';"></div>""", unsafe_allow_html=True)
 
     st.markdown(f"<h2 style='text-align: center; color: {primary_accent_pink}; margin-bottom: 1rem;'>Knowledge Base</h2>", unsafe_allow_html=True)
 
-    # Initialize default KB if no vector store is loaded yet
+    # Initialize or load KB on first run / if not loaded
     if not st.session_state.vector_store_loaded:
-        initialize_default_kb()
+        initialize_or_load_kb()
     elif st.session_state.vector_store_loaded: # If already loaded, just show status
-         st.success(f"Active KB: {st.session_state.processed_pdf_name or 'Unknown'}")
+         st.success(f"Active KB: {st.session_state.processed_pdf_name or 'Unknown Source'}")
 
 
     st.markdown("---")
     st.markdown("<p style='font-weight: bold; color: #FFB74D;'>Upload Custom PDF:</p>", unsafe_allow_html=True)
-    uploaded_file_sb = st.file_uploader("Select a medical PDF to build a new knowledge base.", type="pdf", key="pdf_uploader_sidebar")
+    uploaded_file_sb = st.file_uploader("Select a medical PDF to build a new knowledge base.", type="pdf", key="pdf_uploader_sidebar_main") # Changed key
 
-    if st.button("Process Uploaded PDF", key="process_uploaded_button", help="Process the uploaded PDF. This will replace the current knowledge base."):
+    if st.button("Process Uploaded PDF", key="process_uploaded_button_main", help="Process the uploaded PDF. This will replace the current knowledge base."): # Changed key
         if uploaded_file_sb is not None:
-            # Save uploaded file temporarily
-            temp_pdf_path = os.path.join(DATA_DIR, uploaded_file_sb.name)
-            with open(temp_pdf_path, "wb") as f:
+            # Save uploaded file to data directory (optional, could process in memory too)
+            user_pdf_path = os.path.join(DATA_DIR, uploaded_file_sb.name)
+            with open(user_pdf_path, "wb") as f:
                 f.write(uploaded_file_sb.getbuffer())
             
-            process_and_load_pdf(temp_pdf_path, uploaded_file_sb.name, is_default=False)
-            
-            # Clean up the temporarily saved uploaded PDF after processing
-            if os.path.exists(temp_pdf_path):
-                try:
-                    os.remove(temp_pdf_path)
-                except Exception as e:
-                    print(f"Could not remove temporary uploaded file {temp_pdf_path}: {e}")
-            st.rerun() # Rerun to reflect new KB
+            success = process_and_load_pdf(user_pdf_path, uploaded_file_sb.name, is_default=False)
+            if success:
+                 st.sidebar.success(f"Custom KB '{uploaded_file_sb.name}' processed.")
+            else:
+                 st.sidebar.error(f"Failed to process '{uploaded_file_sb.name}'.")
+            # No need to remove user_pdf_path if you want to keep it in data/
+            st.rerun()
         else:
             st.warning("Please upload a PDF file first.")
 
+    # Option to switch back to default if a custom one is loaded
     if st.session_state.vector_store_loaded and not st.session_state.kb_source_is_default:
-        if st.button("Switch to Default KB", key="switch_to_default_kb"):
+        if st.button("Load Default KB", key="switch_to_default_kb_main"): # Changed key
             if os.path.exists(DEFAULT_PDF_PATH):
-                st.info(f"Switching to '{DEFAULT_KB_DISPLAY_NAME}'...")
-                process_and_load_pdf(DEFAULT_PDF_PATH, DEFAULT_KB_DISPLAY_NAME, is_default=True)
+                st.sidebar.info(f"Switching to '{DEFAULT_KB_DISPLAY_NAME}'...")
+                success = process_and_load_pdf(DEFAULT_PDF_PATH, DEFAULT_KB_DISPLAY_NAME, is_default=True)
+                if success:
+                    st.sidebar.success(f"Default KB '{DEFAULT_KB_DISPLAY_NAME}' loaded.")
+                else:
+                    st.sidebar.error(f"Failed to load default KB '{DEFAULT_KB_DISPLAY_NAME}'.")
                 st.rerun()
             else:
                 st.error(f"Default PDF '{DEFAULT_PDF_NAME}' not found. Cannot switch.")
@@ -938,18 +953,17 @@ with st.sidebar:
 
 
 # --- Main Chat Interface ---
-# ... (Your main chat interface markdown header) ...
+# ... (Your main chat interface markdown header, e.g., st.markdown("<div class='section-header'>...</div>"))
 st.markdown("<div class='section-header'>Symptom Analysis & Guidance</div>", unsafe_allow_html=True)
 
 chat_container = st.container()
 with chat_container:
+    # ... (Your existing, detailed message display loop - ensure it's complete) ...
+    # This should iterate through st.session_state.messages and display user/assistant messages
+    # The assistant message display should use data.get('medications_list', []) for meds
     for i, msg in enumerate(st.session_state.messages):
         is_structured_response = isinstance(msg["content"], dict) and "predicted_disease" in msg["content"]
         with st.chat_message(msg["role"], avatar="🧑‍⚕️" if msg["role"] == "assistant" else "👤"):
-            # ... (Your existing detailed display logic for user and structured assistant messages) ...
-            # This part of your code for displaying messages is quite extensive and seems correct
-            # based on previous versions. I'll put a placeholder here for brevity.
-            # Ensure it uses data.get('medications_list', []) and iterates for multiple medication boxes.
             if msg["role"] == "user": st.markdown(f"<div style='text-align: right; color: {text_color_yellow} !important; padding: 0.5rem;'>{msg['content']}</div>", unsafe_allow_html=True)
             elif is_structured_response:
                 st.markdown("<div class='analysis-complete-message'>", unsafe_allow_html=True)
@@ -979,7 +993,7 @@ with chat_container:
                             if d_txt and d_txt not in ['N/A', 'Consult doctor.', 'Consult doctor for dosage.']: med_h += f"<p class='med-dosage'>Dosage Example: <span>{d_txt}</span> <em>(Not medical advice)</em></p>"
                             if med.get('notes') and med.get('notes') != 'N/A': med_h += f"<p class='med-notes'>Notes: <span>{med.get('notes')}</span></p>"
                             med_h += "</div>"; st.markdown(med_h, unsafe_allow_html=True)
-                    elif pharma_fb and pharma_fb != DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK and "not available" not in pharma_fb.lower(): st.markdown(pharma_fb, unsafe_allow_html=True) # Changed from medication-item wrap to direct markdown
+                    elif pharma_fb and pharma_fb != DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK and "not available" not in pharma_fb.lower(): st.markdown(f"<div class='medication-item'>{pharma_fb}</div>", unsafe_allow_html=True) # Wrap fallback text in item box
                     else: st.markdown(f"<p style='color:{text_color_blue}; font-style:italic;'>{DEFAULT_MSG_PHARMACOLOGICAL_FALLBACK}</p>", unsafe_allow_html=True)
                 with st.expander("🌿 Non-Pharmacological & Lifestyle"):
                     st.markdown(f"<div class='treatment-guidance-subheader lifestyle-header'>Lifestyle & Home Care</div>", unsafe_allow_html=True)
@@ -1047,6 +1061,5 @@ if user_symptoms := st.chat_input("Describe symptoms (e.g., 'fever, persistent c
                 print(f"ERROR in Streamlit chat input processing: {detailed_error_message}")
     st.rerun()
 
-# --- Footer (remains the same) ---
-# ... (Your footer markdown) ...
+# --- Footer ---
 st.markdown(f"""<div style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba({int(bg_color[1:3], 16)}, {int(bg_color[3:5], 16)}, {int(bg_color[5:7], 16)}, 0.9); backdrop-filter: blur(5px); padding: 0.5rem; text-align: center; border-top: 1px solid {card_border_color}; z-index: 99;"><p style="margin: 0; font-size: 0.8rem; opacity: 0.7; color: {text_color_blue} !important;">TATA md AI Medical Advisor © {datetime.now().year} - For Informational Purposes Only</p></div>""", unsafe_allow_html=True)
